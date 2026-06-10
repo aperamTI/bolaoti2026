@@ -328,6 +328,7 @@
   }
   .chip-done { background: #fee2e2; color: #dc2626; }
   .chip-soon { background: #e0f2fe; color: #0369a1; }
+  .chip-locked { background: #fef08a; color: #a16207; } /* Amarelo para jogos fechados */
 
   /* ── MEUS PALPITES VIEW ── */
   .my-result { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
@@ -512,7 +513,7 @@
     <ul class="regras-list">
       <li><strong>1. Identificação ou Cadastro:</strong> Vá para a aba <strong>🎯 Palpites</strong>. Se for sua primeira vez, digite seu nome e crie uma senha (mínimo de 4 dígitos) e clique em <em>Cadastrar</em>. Se já tiver conta criada, use os mesmos dados e clique em <em>Entrar</em>.</li>
       <li><strong>2. Lançar os Palpites:</strong> Após o login, os campos de gols dos jogos ativos estarão liberados. Digite o placar que você acredita para cada partida da lista.</li>
-      <li><strong>3. Gravar suas Apostas:</strong> Clique no botão verde <strong>💾 Salvar Palpites</strong> localizado no final da página de palpites. Você pode modificá-los quantas vezes quiser antes do jogo iniciar. Jogos encerrados ou iniciados são travados pelo Administrador.</li>
+      <li><strong>3. Bloqueio de Horário:</strong> Você só pode salvar ou alterar os palpites de um jogo até o horário oficial do início da partida. Após o horário, os campos são automaticamente bloqueados.</li>
       <li><strong>4. Conferência Individual:</strong> Na aba <strong>📋 Meus Palpites</strong>, selecione seu nome na lista suspensa para ver um relatório limpo e completo de todas as suas apostas feitas, os resultados oficiais já calculados e seus acertos.</li>
       <li><strong>5. Monitorar a Classificação:</strong> Acompanhe a sua evolução na aba <strong>🏆 Ranking</strong>. Ela atualiza de forma automatizada no momento em que a equipe organizadora insere os placares oficiais da rodada!</li>
     </ul>
@@ -546,6 +547,8 @@
 // ════════════════════════════════════════
 //  LINK DO BANCO DE DADOS (GOOGLE SHEETS)
 // ════════════════════════════════════════
+
+// COLE A SUA URL AQUI DENTRO DAS ASPAS:
 const API_URL = "https://script.google.com/macros/s/AKfycbwi4kJU3N6nqtOQLDNf7V_fQXhAWE8vPgqxE-ZF5Kjb7CpKlQbwNNJAdpZ_6LWg5nQS/exec"; 
 
 const ADMIN_PASSWORD = "aperam2026"; 
@@ -621,7 +624,9 @@ function handleLogin() {
   
   const users = getUsers();
   if (!users[user]) { msg.textContent = "❌ Usuário não cadastrado. Registre-se ao lado."; return; }
-  if (users[user] !== pass) { msg.textContent = "❌ Senha inválida para este usuário."; return; }
+  
+  // FIX: Força que ambos sejam tratados como string para evitar erro com números puros
+  if (String(users[user]) !== String(pass)) { msg.textContent = "❌ Senha inválida para este usuário."; return; }
   
   setLoggedUser(user);
   msg.textContent = "";
@@ -704,6 +709,32 @@ function updateUsersDropdown() {
 }
 
 // ════════════════════════════════════════
+//  FUNÇÕES DE DATA E HORÁRIO (TRAVA DE JOGOS)
+// ════════════════════════════════════════
+
+function isMatchLocked(dateStr, timeStr) {
+  // Pega a data ("11/06/2026") e hora ("19:00") e converte pra formato de relógio
+  const dateParts = dateStr.split('/');
+  const timeParts = timeStr.split(':');
+  
+  if (dateParts.length === 3 && timeParts.length === 2) {
+    const day = parseInt(dateParts[0], 10);
+    const month = parseInt(dateParts[1], 10) - 1; // Meses no Javascript começam do 0
+    const year = parseInt(dateParts[2], 10);
+    const hour = parseInt(timeParts[0], 10);
+    const minute = parseInt(timeParts[1], 10);
+    
+    const matchDate = new Date(year, month, day, hour, minute);
+    const now = new Date();
+    
+    // Se o relógio de agora for maior ou igual a hora do jogo, trava o jogo
+    return now >= matchDate;
+  }
+  return false;
+}
+
+
+// ════════════════════════════════════════
 //  CÁLCULO DE REGRAS
 // ════════════════════════════════════════
 
@@ -754,8 +785,14 @@ function renderMatches() {
     
     groupMatches.forEach(m => {
       const r = results[m.id];
-      const done = r && r.h !== null && r.a !== null;
-      const chip = done ? `<span class="chip chip-done">Encerrado</span>` : `<span class="chip chip-soon">Aguardando</span>`;
+      const adminDone = r && r.h !== null && r.h !== undefined; // Se o admin encerrou
+      const timeLocked = isMatchLocked(m.date, m.time); // Se a hora já passou
+      const disabled = adminDone || timeLocked;
+      
+      let chip = '';
+      if (adminDone) chip = `<span class="chip chip-done">Encerrado</span>`;
+      else if (timeLocked) chip = `<span class="chip chip-locked">Fechado/Em Jogo</span>`;
+      else chip = `<span class="chip chip-soon">Aberto</span>`;
         
       html += `
       <div class="match-card" id="mc-${m.id}">
@@ -763,12 +800,12 @@ function renderMatches() {
         <div class="match-body">
           <div class="team-name">${m.home}</div>
           <div class="score-inputs">
-            <input type="number" min="0" max="20" id="ph-${m.id}" placeholder="–" oninput="updatePtsDisplay(${m.id})" ${done ? 'disabled' : ''}>
+            <input type="number" min="0" max="20" id="ph-${m.id}" placeholder="–" oninput="updatePtsDisplay(${m.id})" ${disabled ? 'disabled' : ''}>
             <span class="score-vs">✕</span>
-            <input type="number" min="0" max="20" id="pa-${m.id}" placeholder="–" oninput="updatePtsDisplay(${m.id})" ${done ? 'disabled' : ''}>
+            <input type="number" min="0" max="20" id="pa-${m.id}" placeholder="–" oninput="updatePtsDisplay(${m.id})" ${disabled ? 'disabled' : ''}>
           </div>
           <div class="team-name">${m.away}</div>
-          <div class="pts-display" id="pts-${m.id}">${done ? `Real:<br><b>${r.h}–${r.a}</b>` : ''}</div>
+          <div class="pts-display" id="pts-${m.id}">${adminDone ? `Real:<br><b>${r.h}–${r.a}</b>` : ''}</div>
         </div>
       </div>`;
     });
@@ -816,7 +853,11 @@ async function savePalpites() {
   let guessesToSend = [];
   MATCHES.forEach(m => {
     const r = results[m.id];
+    // Não deixa salvar se o admin já finalizou o jogo...
     if (r && r.h !== null && r.h !== undefined) return; 
+    
+    // ...ou se o horário do jogo já passou!
+    if (isMatchLocked(m.date, m.time)) return;
 
     const phEl = document.getElementById(`ph-${m.id}`);
     const paEl = document.getElementById(`pa-${m.id}`);
@@ -827,7 +868,7 @@ async function savePalpites() {
     }
   });
 
-  if(guessesToSend.length === 0) { showToast('⚠️ Digite os palpites antes de salvar.'); return; }
+  if(guessesToSend.length === 0) { showToast('⚠️ Nenhum palpite válido (ou os jogos já fecharam).'); return; }
 
   showLoading(true);
   try {
