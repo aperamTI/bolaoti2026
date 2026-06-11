@@ -23,7 +23,6 @@
     --pts10: #16a34a;
     --pts5: #2563eb;
     --pts3: #d97706;
-    /* countdown */
     --urgent-bg: #fff7ed;
     --urgent-border: #f97316;
     --urgent-text: #c2410c;
@@ -32,7 +31,6 @@
     --soon-text: #92400e;
   }
 
-  /* ── DARK MODE ── */
   body.dark {
     --surface: #0f1710;
     --card: #1a2a1d;
@@ -72,6 +70,8 @@
   body.dark .match-urgency .countdown-bar { background: #2a1505 !important; }
   body.dark .match-soon-warn { background: var(--soon-bg) !important; border-color: var(--soon-border) !important; }
   body.dark #loading-overlay { background: rgba(15,23,16,0.95); }
+  body.dark .admin-ko-card { background: #1a2a1d; border-color: var(--border); }
+  body.dark .admin-ko-card input[type=text] { background: #111e13; }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -82,7 +82,6 @@
     min-height: 100vh;
   }
 
-  /* ── HEADER ── */
   header {
     background: linear-gradient(135deg, var(--dark) 0%, var(--pitch) 60%, var(--green) 100%);
     padding: 28px 24px 20px;
@@ -116,7 +115,6 @@
     position: relative;
   }
 
-  /* ── NAV TABS ── */
   nav {
     display: flex;
     gap: 0;
@@ -148,11 +146,9 @@
   }
   nav button:hover:not(.active) { color: #fff; }
 
-  /* ── SECTIONS ── */
   .section { display: none; padding: 20px 16px 40px; max-width: 860px; margin: 0 auto; }
   .section.active { display: block; }
 
-  /* ── CARDS ── */
   .card {
     background: var(--card);
     border-radius: 12px;
@@ -174,7 +170,6 @@
     gap: 8px;
   }
 
-  /* ── SCORING LEGEND ── */
   .score-legend { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; justify-content: center; }
   .badge {
     display: inline-flex; align-items: center; gap: 6px;
@@ -185,7 +180,6 @@
   .badge-5  { background: #dbeafe; color: var(--pts5);  border: 1px solid #93c5fd; }
   .badge-3  { background: #fef3c7; color: var(--pts3);  border: 1px solid #fcd34d; }
 
-  /* ── FORMS & AUTHS ── */
   .user-select-wrap { margin-bottom: 20px; }
   .user-select-wrap label { display: block; font-size: .85rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
   select, input[type=text], input[type=password] {
@@ -213,7 +207,6 @@
   }
   .btn-logout:hover { background: #be123c; }
 
-  /* ── GRUPOS CONTAINER ── */
   .group-container {
     background: #f9fbf9;
     border: 1px dashed var(--green-mid);
@@ -230,7 +223,6 @@
     text-transform: uppercase; letter-spacing: .05em;
   }
 
-  /* ── MATCH CARD ── */
   .match-card {
     background: #fff;
     border: 1.5px solid var(--border);
@@ -298,7 +290,6 @@
   .pts-display.pts5  { color: var(--pts5); }
   .pts-display.pts3  { color: var(--pts3); }
 
-  /* ── SAVE BUTTON ── */
   .btn-save {
     width: 100%; padding: 14px;
     background: var(--green);
@@ -314,7 +305,6 @@
   .btn-save:hover { background: var(--green-mid); }
   .btn-save:active { transform: scale(.98); }
 
-  /* ── TOAST ── */
   #toast {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
     background: var(--dark); color: #fff;
@@ -325,7 +315,6 @@
   }
   #toast.show { transform: translateX(-50%) translateY(0); }
 
-  /* ── RANKING ── */
   .ranking-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; }
   th {
@@ -369,7 +358,107 @@
   .btn-update:hover { background: var(--green-mid); }
   .result-confirmed { color: var(--pts10); font-weight: 700; font-size: .85rem; }
 
-  /* ── STATUS CHIPS ── */
+  /* ── ADMIN KNOCKOUT CARD ── */
+  .admin-ko-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .admin-ko-card .ko-match-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem; font-weight: 800;
+    color: var(--green);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .admin-ko-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .admin-ko-grid label {
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .admin-ko-grid input[type=text] {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-size: .88rem;
+    background: #f8faf9;
+    color: var(--text);
+    outline: none;
+  }
+  .admin-ko-grid input[type=text]:focus { border-color: var(--green); }
+  .ko-score-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .ko-score-row label { font-size: .8rem; color: var(--muted); font-weight: 600; }
+  .ko-score-row input[type=number] {
+    width: 58px; text-align: center;
+    padding: 7px; font-size: 1rem; font-weight: 700;
+    border: 2px solid var(--border); border-radius: 7px;
+    background: #f8faf9; color: var(--text);
+    -moz-appearance: textfield;
+  }
+  .ko-score-row input[type=number]:focus { border-color: var(--green); outline: none; }
+  .ko-confirmed-badge {
+    font-size: .78rem; font-weight: 700;
+    color: var(--pts10);
+    background: #dcfce7;
+    padding: 3px 9px;
+    border-radius: 8px;
+  }
+  .btn-ko-save {
+    padding: 7px 16px; border-radius: 7px;
+    background: #0369a1; color: #fff; border: none;
+    font-weight: 700; font-size: .85rem; cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: .04em;
+    transition: background .2s;
+  }
+  .btn-ko-save:hover { background: #0284c7; }
+
+  /* ── ADMIN TABS ── */
+  .admin-subtabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .admin-subtab {
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: .95rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .admin-subtab.active {
+    background: var(--pitch);
+    color: var(--gold);
+    border-color: var(--pitch);
+  }
+  .admin-subtab:hover:not(.active) { border-color: var(--green); color: var(--green); }
+
   .chip {
     display: inline-block; padding: 2px 9px; border-radius: 12px;
     font-size: .73rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
@@ -387,7 +476,6 @@
     50% { opacity: .55; }
   }
 
-  /* ── DARK MODE TOGGLE (botão no header) ── */
   .dark-toggle {
     position: absolute;
     top: 16px;
@@ -431,7 +519,6 @@
   body.dark .dark-toggle .toggle-track { background: var(--gold); }
   body.dark .dark-toggle .toggle-thumb { transform: translateX(16px); }
 
-  /* ── COUNTDOWN / URGÊNCIA NOS CARDS ── */
   .match-urgency {
     border-color: #f97316 !important;
     border-width: 2px !important;
@@ -484,7 +571,6 @@
   .match-urgency .countdown-bar-fill { background: #f97316; }
   .match-soon-warn .countdown-bar-fill { background: #eab308; }
 
-  /* ── MEUS PALPITES VIEW ── */
   .my-result { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
   .my-result:last-child { border-bottom: none; }
   .my-result .match-info { flex: 1; font-size: .9rem; }
@@ -495,7 +581,6 @@
     padding: 3px 10px; border-radius: 6px;
   }
 
-  /* ── SECTION TITLE ── */
   .sec-title {
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 1.4rem; font-weight: 900;
@@ -508,7 +593,6 @@
     flex: 1; height: 2px; background: var(--border);
   }
 
-  /* search box */
   .search-box { position: relative; margin-bottom: 14px; }
   .search-box input {
     width: 100%; padding: 9px 12px 9px 36px;
@@ -521,14 +605,12 @@
     font-size: .9rem;
   }
 
-  /* regras list design */
   .regras-list { list-style: none; padding-left: 0; }
   .regras-list li { margin-bottom: 12px; font-size: 0.92rem; line-height: 1.5; color: var(--text); }
   .regras-list li strong { color: var(--green); }
 
   @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-  /* ── LAYOUT GERAL COM COLUNAS LATERAIS ── */
   .page-wrapper {
     display: flex;
     align-items: flex-start;
@@ -537,7 +619,6 @@
     margin: 0 auto;
   }
 
-  /* ── SIDEBAR AO VIVO ── */
   .live-sidebar {
     width: 220px;
     flex-shrink: 0;
@@ -644,14 +725,12 @@
     margin-top: 4px;
   }
 
-  /* ── CONTEÚDO CENTRAL ── */
   .center-content {
     flex: 1;
     min-width: 0;
   }
   .center-content .section { max-width: 860px; margin: 0 auto; }
 
-  /* ── BOTÃO SALVAR PEQUENO (TOPO) ── */
   .btn-save-top {
     padding: 9px 18px;
     background: var(--green);
@@ -671,7 +750,6 @@
   .btn-save-top:hover { background: var(--green-mid); }
   .btn-save-top:active { transform: scale(.97); }
 
-  /* ── ETAPA + SAVE ROW ── */
   .etapa-row {
     display: flex;
     align-items: flex-end;
@@ -688,14 +766,35 @@
     margin-left: auto;
   }
 
+  /* Indicador de rodada automática */
+  .round-auto-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 10px;
+    background: #e0f2fe;
+    color: #0369a1;
+    border-radius: 20px;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
   @media (max-width: 1100px) {
     .live-sidebar { display: none; }
+  }
+  @media (max-width: 700px) {
+    .admin-ko-grid { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 480px) {
     .match-body { flex-direction: column; gap: 10px; }
     .team-name { font-size: 1rem; }
     .score-inputs input[type=number] { width: 48px; font-size: 1.1rem; }
     .etapa-row { max-width: 100%; }
+    .admin-ko-grid { grid-template-columns: 1fr 1fr; }
   }
 </style>
 </head>
@@ -725,14 +824,12 @@
 
 <div class="page-wrapper">
 
-  <!-- SIDEBAR ESQUERDA: Jogos ao Vivo -->
   <aside class="live-sidebar" id="live-sidebar-left">
     <div class="live-sidebar-title"><span class="live-dot"></span> Ao Vivo</div>
     <div id="live-left-content"><div class="live-empty">Carregando...</div></div>
     <div class="live-update-time" id="live-update-time"></div>
   </aside>
 
-  <!-- CONTEÚDO CENTRAL -->
   <div class="center-content">
 
 <div id="tab-palpites" class="section active">
@@ -893,33 +990,68 @@
   </div>
 
   <div id="admin-panel" style="display:none;">
-    <div class="card">
-      <div class="card-title">⚽ Inserir Resultados Reais</div>
-      
-      <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-        <div class="user-select-wrap" style="flex: 1; min-width: 150px; margin-bottom: 0;">
-          <label>📅 Etapa:</label>
-          <select id="sel-etapa-admin" onchange="toggleAdminRound(); renderAdminMatches()">
-            <option value="grupos">Fase de Grupos</option>
-            <option value="oitavas">Oitavas de Final</option>
-            <option value="quartas">Quartas de Final</option>
-            <option value="semi">Semifinais</option>
-            <option value="final">Grande Final</option>
-          </select>
-        </div>
-        <div class="user-select-wrap" id="wrap-rodada-admin" style="flex: 1; min-width: 120px; margin-bottom: 0;">
-          <label>Rodada:</label>
-          <select id="sel-rodada-admin" onchange="renderAdminMatches()">
-            <option value="1">Rodada 1</option>
-            <option value="2">Rodada 2</option>
-            <option value="3">Rodada 3</option>
-          </select>
-        </div>
-      </div>
-
-      <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px;">Insira o placar real dos jogos. A pontuação de todos os participantes será calculada automaticamente.</p>
-      <div id="admin-matches"></div>
+    
+    <!-- Sub-abas do Admin -->
+    <div class="admin-subtabs">
+      <button class="admin-subtab active" onclick="switchAdminTab('resultados')">⚽ Resultados</button>
+      <button class="admin-subtab" onclick="switchAdminTab('confrontos')">🗓️ Editar Confrontos Mata-Mata</button>
     </div>
+
+    <!-- SUB-ABA: RESULTADOS -->
+    <div id="admin-tab-resultados">
+      <div class="card">
+        <div class="card-title">⚽ Inserir Resultados Reais</div>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+          <div class="user-select-wrap" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+            <label>📅 Etapa:</label>
+            <select id="sel-etapa-admin" onchange="toggleAdminRound(); renderAdminMatches()">
+              <option value="grupos">Fase de Grupos</option>
+              <option value="oitavas">Oitavas de Final</option>
+              <option value="quartas">Quartas de Final</option>
+              <option value="semi">Semifinais</option>
+              <option value="final">Grande Final</option>
+            </select>
+          </div>
+          <div class="user-select-wrap" id="wrap-rodada-admin" style="flex: 1; min-width: 120px; margin-bottom: 0;">
+            <label>Rodada:</label>
+            <select id="sel-rodada-admin" onchange="renderAdminMatches()">
+              <option value="1">Rodada 1</option>
+              <option value="2">Rodada 2</option>
+              <option value="3">Rodada 3</option>
+            </select>
+          </div>
+        </div>
+
+        <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px;">Insira o placar real dos jogos. A pontuação de todos os participantes será calculada automaticamente.</p>
+        <div id="admin-matches"></div>
+      </div>
+    </div>
+
+    <!-- SUB-ABA: CONFRONTOS MATA-MATA -->
+    <div id="admin-tab-confrontos" style="display:none;">
+      <div class="card">
+        <div class="card-title">🗓️ Editar Confrontos do Mata-Mata</div>
+        <p style="font-size:.85rem; color:var(--muted); margin-bottom:16px; line-height:1.5;">
+          Defina os times, datas e horários dos confrontos conforme forem saindo. Os dados serão salvos na planilha e aparecerão automaticamente para todos os participantes na aba de Palpites.
+        </p>
+        
+        <div style="display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items:flex-end;">
+          <div class="user-select-wrap" style="min-width:150px; flex:1; margin-bottom:0;">
+            <label>📅 Fase:</label>
+            <select id="sel-fase-ko" onchange="renderKOEditor()">
+              <option value="oitavas">Oitavas de Final</option>
+              <option value="quartas">Quartas de Final</option>
+              <option value="semi">Semifinais</option>
+              <option value="final">Grande Final</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="ko-editor-container"></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -927,7 +1059,6 @@
 
   </div><!-- /center-content -->
 
-  <!-- SIDEBAR DIREITA: Próximos Jogos -->
   <aside class="live-sidebar" id="live-sidebar-right">
     <div class="live-sidebar-title">📅 Hoje &amp; Amanhã</div>
     <div id="live-right-content"><div class="live-empty">Carregando...</div></div>
@@ -937,14 +1068,19 @@
 
 <script>
 // ════════════════════════════════════════
-//  LINK DO BANCO DE DADOS (GOOGLE SHEETS)
+//  CONFIGURAÇÃO
 // ════════════════════════════════════════
 
 const API_URL = "https://script.google.com/macros/s/AKfycbwi4kJU3N6nqtOQLDNf7V_fQXhAWE8vPgqxE-ZF5Kjb7CpKlQbwNNJAdpZ_6LWg5nQS/exec"; 
 const ADMIN_PASSWORD = "aperam2026"; 
 
-const MATCHES = [
-  // ── FASE DE GRUPOS - RODADA 1 ──
+// ════════════════════════════════════════
+//  PARTIDAS — FASE DE GRUPOS (fixas no código)
+//  Mata-mata: carregado da planilha via CACHE_DATA.koMatches
+// ════════════════════════════════════════
+
+const GROUP_MATCHES = [
+  // ── RODADA 1 ──
   { id:1,  phase:"grupos", round:1, date:"11/06/2026", time:"16:00", group:"A", home:"México",         away:"África do Sul" },
   { id:2,  phase:"grupos", round:1, date:"11/06/2026", time:"23:00", group:"A", home:"Coreia do Sul",  away:"Rep. Tcheca" },
   { id:3,  phase:"grupos", round:1, date:"12/06/2026", time:"16:00", group:"B", home:"Canadá",         away:"Bósnia e Herzegovina" },
@@ -970,24 +1106,7 @@ const MATCHES = [
   { id:23, phase:"grupos", round:1, date:"17/06/2026", time:"20:00", group:"L", home:"Gana",           away:"Panamá" },
   { id:24, phase:"grupos", round:1, date:"17/06/2026", time:"23:00", group:"K", home:"Uzbequistão",    away:"Colômbia" },
 
-  // ── MATA MATA (Preservando IDs 25-39) ──
-  { id:25, phase:"oitavas", date:"A definir", time:"A definir", group:"Oitavas de Final", home:"A definir", away:"A definir" },
-  { id:26, phase:"oitavas", date:"A definir", time:"A definir", group:"Oitavas de Final", home:"A definir", away:"A definir" },
-  { id:27, phase:"oitavas", date:"A definir", time:"A definir", group:"Oitavas de Final", home:"A definir", away:"A definir" },
-  { id:28, phase:"oitavas", date:"A definir", time:"A definir", group:"Oitavas de Final", home:"A definir", away:"A definir" },
-  { id:29, phase:"oitavas", date:"A definir", time:"A definir", group:"Oitavas de Final", home:"A definir", away:"A definir" },
-  { id:30, phase:"oitavas", date:"A definir", time:"A definir", group:"Oitavas de Final", home:"A definir", away:"A definir" },
-  { id:31, phase:"oitavas", date:"A definir", time:"A definir", group:"Oitavas de Final", home:"A definir", away:"A definir" },
-  { id:32, phase:"oitavas", date:"A definir", time:"A definir", group:"Oitavas de Final", home:"A definir", away:"A definir" },
-  { id:33, phase:"quartas", date:"A definir", time:"A definir", group:"Quartas de Final", home:"A definir", away:"A definir" },
-  { id:34, phase:"quartas", date:"A definir", time:"A definir", group:"Quartas de Final", home:"A definir", away:"A definir" },
-  { id:35, phase:"quartas", date:"A definir", time:"A definir", group:"Quartas de Final", home:"A definir", away:"A definir" },
-  { id:36, phase:"quartas", date:"A definir", time:"A definir", group:"Quartas de Final", home:"A definir", away:"A definir" },
-  { id:37, phase:"semi", date:"A definir", time:"A definir", group:"Semifinais", home:"A definir", away:"A definir" },
-  { id:38, phase:"semi", date:"A definir", time:"A definir", group:"Semifinais", home:"A definir", away:"A definir" },
-  { id:39, phase:"final", date:"A definir", time:"A definir", group:"Grande Final", home:"A definir", away:"A definir" },
-
-  // ── FASE DE GRUPOS - RODADA 2 ──
+  // ── RODADA 2 ──
   { id:40, phase:"grupos", round:2, date:"18/06/2026", time:"13:00", group:"A", home:"Rep. Tcheca",    away:"África do Sul" },
   { id:41, phase:"grupos", round:2, date:"18/06/2026", time:"16:00", group:"B", home:"Suíça",          away:"Bósnia e Herzegovina" },
   { id:42, phase:"grupos", round:2, date:"18/06/2026", time:"19:00", group:"B", home:"Canadá",         away:"Catar" },
@@ -1013,7 +1132,7 @@ const MATCHES = [
   { id:62, phase:"grupos", round:2, date:"23/06/2026", time:"20:00", group:"L", home:"Panamá",         away:"Croácia" },
   { id:63, phase:"grupos", round:2, date:"23/06/2026", time:"23:00", group:"K", home:"Colômbia",       away:"RD Congo" },
 
-  // ── FASE DE GRUPOS - RODADA 3 ──
+  // ── RODADA 3 ──
   { id:64, phase:"grupos", round:3, date:"24/06/2026", time:"16:00", group:"B", home:"Suíça",          away:"Canadá" },
   { id:65, phase:"grupos", round:3, date:"24/06/2026", time:"16:00", group:"B", home:"Bósnia e Herzegovina", away:"Catar" },
   { id:66, phase:"grupos", round:3, date:"24/06/2026", time:"19:00", group:"C", home:"Marrocos",       away:"Haiti" },
@@ -1040,11 +1159,53 @@ const MATCHES = [
   { id:87, phase:"grupos", round:3, date:"27/06/2026", time:"23:00", group:"J", home:"Jordânia",       away:"Argentina" }
 ];
 
-let CACHE_DATA = { users: {}, palpites: {}, results: {} };
+// Template dos confrontos de mata-mata (IDs fixos, dados dinâmicos da planilha)
+const KO_TEMPLATES = [
+  { id:25, phase:"oitavas", slot:1, label:"Jogo 1" },
+  { id:26, phase:"oitavas", slot:2, label:"Jogo 2" },
+  { id:27, phase:"oitavas", slot:3, label:"Jogo 3" },
+  { id:28, phase:"oitavas", slot:4, label:"Jogo 4" },
+  { id:29, phase:"oitavas", slot:5, label:"Jogo 5" },
+  { id:30, phase:"oitavas", slot:6, label:"Jogo 6" },
+  { id:31, phase:"oitavas", slot:7, label:"Jogo 7" },
+  { id:32, phase:"oitavas", slot:8, label:"Jogo 8" },
+  { id:33, phase:"quartas", slot:1, label:"Jogo 1" },
+  { id:34, phase:"quartas", slot:2, label:"Jogo 2" },
+  { id:35, phase:"quartas", slot:3, label:"Jogo 3" },
+  { id:36, phase:"quartas", slot:4, label:"Jogo 4" },
+  { id:37, phase:"semi",    slot:1, label:"Semifinal 1" },
+  { id:38, phase:"semi",    slot:2, label:"Semifinal 2" },
+  { id:39, phase:"final",   slot:1, label:"Grande Final" },
+];
 
-function getData() { return CACHE_DATA.palpites; }
+// Mescla grupos + mata-mata em MATCHES (mata-mata é preenchido depois com dados da planilha)
+let MATCHES = [...GROUP_MATCHES];
+
+let CACHE_DATA = { users: {}, palpites: {}, results: {}, koMatches: {} };
+
+function getData()    { return CACHE_DATA.palpites; }
 function getResults() { return CACHE_DATA.results; }
-function getUsers() { return CACHE_DATA.users; }
+function getUsers()   { return CACHE_DATA.users; }
+function getKO()      { return CACHE_DATA.koMatches || {}; }
+
+// Reconstrói o array MATCHES com os dados dinâmicos do mata-mata
+function rebuildMatches() {
+  const ko = getKO();
+  const koArray = KO_TEMPLATES.map(tpl => {
+    const saved = ko[tpl.id] || {};
+    return {
+      id:    tpl.id,
+      phase: tpl.phase,
+      slot:  tpl.slot,
+      date:  saved.date  || "A definir",
+      time:  saved.time  || "A definir",
+      group: saved.label || tpl.label,
+      home:  saved.home  || "A definir",
+      away:  saved.away  || "A definir",
+    };
+  });
+  MATCHES = [...GROUP_MATCHES, ...koArray];
+}
 
 let memoryLoggedUser = null;
 function getLoggedUser() { 
@@ -1062,13 +1223,31 @@ async function refreshData() {
   try {
     let res = await fetch(API_URL);
     CACHE_DATA = await res.json();
+    rebuildMatches();
   } catch(e) {
     console.error("Erro ao sincronizar:", e); showToast("❌ Erro de conexão com o banco de dados.");
   }
 }
 
 // ════════════════════════════════════════
-//  CONTROLE DE LOGIN
+//  LÓGICA DE RODADA PADRÃO AUTOMÁTICA
+//  Rodada 1 → após 17/06/2026 23:59 → Rodada 2
+//  Rodada 2 → após 23/06/2026 23:59 → Rodada 3
+// ════════════════════════════════════════
+
+function getDefaultRound() {
+  const now = new Date();
+  // Último jogo da Rodada 1: 17/06/2026 23:00 → bloqueia ~110min depois
+  const endRound1 = new Date(2026, 5, 18, 1, 30); // 18/jun 01:30 (110min após 23:00)
+  // Último jogo da Rodada 2: 23/06/2026 23:00
+  const endRound2 = new Date(2026, 6, 24, 1, 30); // 24/jun 01:30
+  if (now >= endRound2) return 3;
+  if (now >= endRound1) return 2;
+  return 1;
+}
+
+// ════════════════════════════════════════
+//  LOGIN
 // ════════════════════════════════════════
 
 function handleLogin() {
@@ -1090,7 +1269,6 @@ async function handleRegister() {
   if (!user || !pass) { msg.textContent = "⚠️ Insira um nome e senha válidos."; return; }
   if (user.length < 3) { msg.textContent = "⚠️ O nome deve conter ao menos 3 caracteres."; return; }
   if (pass.length < 4) { msg.textContent = "⚠️ A senha deve conter ao menos 4 caracteres."; return; }
-  
   if (getUsers()[user]) { msg.textContent = "❌ Esse nome de usuário já está sendo usado."; return; }
   
   showLoading(true);
@@ -1168,7 +1346,7 @@ function calcUserTotal(user) {
 }
 
 // ════════════════════════════════════════
-//  MONTAGEM INTERFACES DOS JOGOS
+//  RENDERIZAÇÃO DE JOGOS
 // ════════════════════════════════════════
 
 function generateMatchHTML(m, results) {
@@ -1178,11 +1356,10 @@ function generateMatchHTML(m, results) {
   const isDefinir = m.home === "A definir" || m.away === "A definir";
   const disabled = adminDone || timeLocked || isDefinir;
   
-  // Calcular status de tempo para urgência
   const st = (!adminDone && !isDefinir) ? getMatchStatus(m) : null;
-  const isLive   = st && st.status === 'live';
-  const isSoon   = st && st.status === 'soon' && st.hoursLeft === 0; // menos de 1h
-  const isToday  = st && st.status === 'soon' && st.hoursLeft >= 1;  // 1-24h
+  const isLive  = st && st.status === 'live';
+  const isSoon  = st && st.status === 'soon' && st.hoursLeft === 0;
+  const isToday = st && st.status === 'soon' && st.hoursLeft >= 1;
 
   let urgencyClass = '';
   if (isLive)  urgencyClass = 'match-urgency';
@@ -1196,7 +1373,6 @@ function generateMatchHTML(m, results) {
   else if (isDefinir) chip = `<span class="chip chip-locked">Aguardando</span>`;
   else chip = `<span class="chip chip-soon">Aberto</span>`;
 
-  // Bloco de countdown (só aparece se o jogo ainda não terminou e tem status de urgência)
   let countdownHTML = '';
   if (urgencyClass && !adminDone) {
     if (isLive) {
@@ -1208,11 +1384,10 @@ function generateMatchHTML(m, results) {
           <span class="cd-timer" id="cd-${m.id}">${st.minute}'</span>
         </div>`;
     } else {
-      // Ainda não começou — calcula segundos restantes
       const parts = m.date.split('/'), tp = m.time.split(':');
       const kickoff = new Date(parts[2], parts[1]-1, parts[0], parseInt(tp[0]), parseInt(tp[1]));
       const secsLeft = Math.max(0, Math.floor((kickoff - new Date()) / 1000));
-      const totalSecs = (isSoon ? 3600 : st.hoursLeft * 3600); // janela de urgência
+      const totalSecs = (isSoon ? 3600 : st.hoursLeft * 3600);
       const pct = Math.max(0, Math.round((1 - secsLeft / totalSecs) * 100));
       const h = Math.floor(secsLeft / 3600), mn = Math.floor((secsLeft % 3600) / 60), sc = secsLeft % 60;
       const cdStr = h > 0
@@ -1257,20 +1432,27 @@ function renderMatches() {
     html += `<div class="group-container">`;
     
     if (selectedPhase === 'grupos') {
+      // ── Calcula a rodada padrão ──
+      const defaultRound = getDefaultRound();
+      
       html += `
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
         <div class="group-title-banner" style="margin-bottom:0;">${bannerText}</div>
-        <select style="padding:5px 10px; border-radius:6px; border:1.5px solid var(--border); font-family:'Barlow Condensed', sans-serif; font-size:.95rem; font-weight:700; color:var(--green); outline:none; background:#fff; cursor:pointer;" onchange="showGroupRound('${grp}', this.value)">
-          <option value="1">Rodada 1</option>
-          <option value="2">Rodada 2</option>
-          <option value="3">Rodada 3</option>
-        </select>
+        <div style="display:flex; align-items:center; gap:8px;">
+          ${defaultRound > 1 ? `<span class="round-auto-badge">🔄 Auto R${defaultRound}</span>` : ''}
+          <select style="padding:5px 10px; border-radius:6px; border:1.5px solid var(--border); font-family:'Barlow Condensed', sans-serif; font-size:.95rem; font-weight:700; color:var(--green); outline:none; background:#fff; cursor:pointer;" 
+            id="sel-rnd-${grp.replace(/\s/g,'_')}"
+            onchange="showGroupRound('${grp}', this.value)">
+            <option value="1" ${defaultRound === 1 ? 'selected' : ''}>Rodada 1</option>
+            <option value="2" ${defaultRound === 2 ? 'selected' : ''}>Rodada 2</option>
+            <option value="3" ${defaultRound === 3 ? 'selected' : ''}>Rodada 3</option>
+          </select>
+        </div>
       </div>`;
       
-      // ANTI-PERDA: Renderiza as 3 rodadas escondendo a 2 e 3 por CSS
       [1, 2, 3].forEach(rnd => {
         const groupMatches = filteredMatches.filter(m => m.group === grp && m.round === rnd);
-        html += `<div id="grp-${grp}-rnd-${rnd}" style="display: ${rnd === 1 ? 'block' : 'none'};">`;
+        html += `<div id="grp-${grp}-rnd-${rnd}" style="display: ${rnd === defaultRound ? 'block' : 'none'};">`;
         if (groupMatches.length > 0) {
           groupMatches.forEach(m => html += generateMatchHTML(m, results));
         } else {
@@ -1345,7 +1527,7 @@ async function savePalpites() {
 }
 
 // ════════════════════════════════════════
-//  OUTRAS ABAS (RANKING / MEUS)
+//  MEUS PALPITES / RANKING
 // ════════════════════════════════════════
 
 function renderMyPalpites() {
@@ -1359,7 +1541,7 @@ function renderMyPalpites() {
   
   MATCHES.filter(m => m.phase === phase).forEach(m => {
     const p = data[`${user}__${m.id}`], r = results[m.id];
-    const hasP = p && p.h !== undefined && p.h !== null, hasR  = r && r.h !== null && r.h !== undefined;
+    const hasP = p && p.h !== undefined && p.h !== null, hasR = r && r.h !== null && r.h !== undefined;
     const pts = hasP && hasR ? calcPts(p.h, p.a, r.h, r.a) : null;
     if (pts !== null) total += pts;
     
@@ -1412,7 +1594,16 @@ function checkAdmin() {
     document.getElementById('admin-panel').style.display = 'block';
     document.getElementById('admin-login-card').style.display = 'none';
     renderAdminMatches();
+    renderKOEditor();
   } else { document.getElementById('admin-msg').textContent = '❌ Senha incorreta.'; }
+}
+
+function switchAdminTab(tab) {
+  document.getElementById('admin-tab-resultados').style.display  = tab === 'resultados'  ? 'block' : 'none';
+  document.getElementById('admin-tab-confrontos').style.display  = tab === 'confrontos' ? 'block' : 'none';
+  document.querySelectorAll('.admin-subtab').forEach((btn, i) => {
+    btn.classList.toggle('active', (i === 0 && tab === 'resultados') || (i === 1 && tab === 'confrontos'));
+  });
 }
 
 function toggleAdminRound() {
@@ -1426,21 +1617,25 @@ function renderAdminMatches() {
   let filteredMatches = MATCHES.filter(m => m.phase === selectedPhase);
   
   if (selectedPhase === 'grupos') {
-      const r = parseInt(document.getElementById('sel-rodada-admin').value);
-      filteredMatches = filteredMatches.filter(m => m.round === r);
+    const r = parseInt(document.getElementById('sel-rodada-admin').value);
+    filteredMatches = filteredMatches.filter(m => m.round === r);
   }
   
   container.innerHTML = filteredMatches.map(m => {
     const r = NavResults[m.id] || {}, confirmed = (r.h !== undefined && r.h !== null);
     const roundLabel = m.round ? ` (R${m.round})` : '';
+    const isDefinir = m.home === 'A definir' || m.away === 'A definir';
     return `<div class="admin-match">
       <div class="team-label">${m.date} | ${m.group}${roundLabel}</div>
       <div style="flex:2;font-weight:600;font-size:.9rem;">${m.home} × ${m.away}</div>
-      <input type="number" min="0" max="20" id="adm-h-${m.id}" value="${confirmed?r.h:''}" placeholder="–">
-      <span style="font-weight:800;color:var(--muted);">–</span>
-      <input type="number" min="0" max="20" id="adm-a-${m.id}" value="${confirmed?r.a:''}" placeholder="–">
-      <button class="btn-update" onclick="saveResult(${m.id})">Salvar</button>
-      ${confirmed ? `<span class="result-confirmed">✔ ${r.h}–${r.a}</span>` : ''}
+      ${isDefinir 
+        ? `<span style="font-size:.8rem;color:var(--muted);font-style:italic;">Confronto não definido — use "Editar Confrontos"</span>`
+        : `<input type="number" min="0" max="20" id="adm-h-${m.id}" value="${confirmed?r.h:''}" placeholder="–">
+           <span style="font-weight:800;color:var(--muted);">–</span>
+           <input type="number" min="0" max="20" id="adm-a-${m.id}" value="${confirmed?r.a:''}" placeholder="–">
+           <button class="btn-update" onclick="saveResult(${m.id})">Salvar</button>
+           ${confirmed ? `<span class="result-confirmed">✔ ${r.h}–${r.a}</span>` : ''}`
+      }
     </div>`;
   }).join('') || '<p style="text-align:center; color:var(--muted); padding:10px;">Nenhum jogo nesta etapa.</p>';
 }
@@ -1461,6 +1656,93 @@ async function saveResult(id) {
   } catch(e) { showToast('❌ Erro de rede.'); }
   showLoading(false);
 }
+
+// ════════════════════════════════════════
+//  EDITOR DE CONFRONTOS MATA-MATA
+// ════════════════════════════════════════
+
+function renderKOEditor() {
+  const phase = document.getElementById('sel-fase-ko')?.value || 'oitavas';
+  const ko = getKO();
+  const templates = KO_TEMPLATES.filter(t => t.phase === phase);
+  const container = document.getElementById('ko-editor-container');
+  
+  const phaseNames = { oitavas:'Oitavas de Final', quartas:'Quartas de Final', semi:'Semifinais', final:'Grande Final' };
+  
+  let html = '';
+  templates.forEach(tpl => {
+    const saved = ko[tpl.id] || {};
+    const confirmed = saved.home && saved.home !== 'A definir';
+    const resData = getResults()[tpl.id];
+    const hasResult = resData && resData.h !== null && resData.h !== undefined;
+    
+    html += `<div class="admin-ko-card">
+      <div class="ko-match-title">
+        ${phaseNames[phase]} — ${tpl.label}
+        ${confirmed ? `<span class="ko-confirmed-badge" style="margin-left:8px;">✔ Definido</span>` : ''}
+      </div>
+      <div class="admin-ko-grid">
+        <div>
+          <label>🏠 Time da Casa</label>
+          <input type="text" id="ko-home-${tpl.id}" value="${saved.home || ''}" placeholder="Ex: Brasil">
+        </div>
+        <div>
+          <label>✈️ Time Visitante</label>
+          <input type="text" id="ko-away-${tpl.id}" value="${saved.away || ''}" placeholder="Ex: Argentina">
+        </div>
+        <div>
+          <label>📅 Data (DD/MM/AAAA)</label>
+          <input type="text" id="ko-date-${tpl.id}" value="${saved.date || ''}" placeholder="Ex: 02/07/2026">
+        </div>
+        <div>
+          <label>🕐 Horário (HH:MM)</label>
+          <input type="text" id="ko-time-${tpl.id}" value="${saved.time || ''}" placeholder="Ex: 16:00">
+        </div>
+      </div>
+      <div class="ko-score-row">
+        <button class="btn-ko-save" onclick="saveKOMatch(${tpl.id})">💾 Salvar Confronto</button>
+        ${hasResult 
+          ? `<span style="font-size:.8rem;color:var(--muted);">Resultado já inserido: <b>${resData.h}–${resData.a}</b></span>`
+          : confirmed 
+            ? `<span style="font-size:.8rem;color:var(--muted);font-style:italic;">Resultado ainda não definido</span>` 
+            : ''
+        }
+      </div>
+    </div>`;
+  });
+  
+  container.innerHTML = html || '<p style="color:var(--muted);">Nenhum confronto nesta fase.</p>';
+}
+
+async function saveKOMatch(id) {
+  const home = document.getElementById(`ko-home-${id}`).value.trim();
+  const away = document.getElementById(`ko-away-${id}`).value.trim();
+  const date = document.getElementById(`ko-date-${id}`).value.trim();
+  const time = document.getElementById(`ko-time-${id}`).value.trim();
+  
+  if (!home || !away) { showToast('⚠️ Preencha pelo menos os nomes dos times.'); return; }
+  
+  showLoading(true);
+  try {
+    let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ 
+      action: 'saveKOMatch', 
+      id: id, home: home, away: away, date: date || 'A definir', time: time || 'A definir'
+    })});
+    let json = await res.json();
+    if(json.status === 'success') {
+      await refreshData();
+      renderKOEditor();
+      renderAdminMatches();
+      if(getLoggedUser()) { renderMatches(); loadUserPalpites(); }
+      showToast(`✅ Confronto salvo! (ID ${id})`);
+    } else { showToast('❌ Erro ao salvar confronto.'); }
+  } catch(e) { showToast('❌ Erro de rede.'); }
+  showLoading(false);
+}
+
+// ════════════════════════════════════════
+//  NAVEGAÇÃO
+// ════════════════════════════════════════
 
 function showTab(id) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -1496,7 +1778,6 @@ function toggleDark() {
   if (lbl) lbl.textContent = isDark ? '☀️ Claro' : '🌙 Escuro';
 }
 
-// Aplica preferência salva ou segue o sistema
 (function initDark() {
   const saved = localStorage.getItem('bolao_dark');
   const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -1509,13 +1790,10 @@ function toggleDark() {
 })();
 
 // ════════════════════════════════════════
-//  JOGOS AO VIVO — COPA DO MUNDO 2026
-//  Usa a lista local MATCHES + horários para
-//  simular ao vivo. Integra com football-data.org
-//  via proxy de CORS quando disponível.
+//  SIDEBARS AO VIVO / PRÓXIMOS JOGOS
 // ════════════════════════════════════════
 
-const LIVE_REFRESH_INTERVAL = 60000; // 60 segundos
+const LIVE_REFRESH_INTERVAL = 60000;
 
 function getMatchStatus(match) {
   if (!match.date || !match.time || match.date === 'A definir') return null;
@@ -1523,7 +1801,7 @@ function getMatchStatus(match) {
   const timeParts = match.time.split(':');
   if (parts.length !== 3 || timeParts.length !== 2) return null;
   const start = new Date(parts[2], parts[1]-1, parts[0], parseInt(timeParts[0]), parseInt(timeParts[1]));
-  const end   = new Date(start.getTime() + 110 * 60000); // ~110 min (90 + intervalo)
+  const end   = new Date(start.getTime() + 110 * 60000);
   const now   = new Date();
   if (now >= start && now <= end) {
     const elapsed = Math.floor((now - start) / 60000);
@@ -1539,16 +1817,9 @@ function getMatchStatus(match) {
   return { status: 'ended', start };
 }
 
-function formatMatchTime(dateStr, timeStr) {
-  const parts = dateStr.split('/');
-  return `${parts[0]}/${parts[1]} ${timeStr}`;
-}
-
 function buildLivePanels() {
   const results = getResults();
-  const liveMatches   = [];
-  const soonMatches   = [];
-  const todayMatches  = [];
+  const liveMatches = [], soonMatches = [], todayMatches = [];
 
   MATCHES.forEach(m => {
     if (m.home === 'A definir') return;
@@ -1559,7 +1830,6 @@ function buildLivePanels() {
     if (st.status === 'tomorrow') todayMatches.push({ m, st });
   });
 
-  // ── SIDEBAR ESQUERDA: Ao Vivo ──
   const leftEl = document.getElementById('live-left-content');
   if (liveMatches.length === 0) {
     leftEl.innerHTML = `<div class="live-empty">Nenhum jogo<br>ao vivo agora 🤷</div>`;
@@ -1584,14 +1854,12 @@ function buildLivePanels() {
     }).join('');
   }
 
-  // Atualizar timestamp
   const timeEl = document.getElementById('live-update-time');
   if (timeEl) {
     const now = new Date();
     timeEl.textContent = `Atualizado às ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
   }
 
-  // ── SIDEBAR DIREITA: Em breve + Amanhã ──
   const rightEl = document.getElementById('live-right-content');
   const upcoming = [...soonMatches, ...todayMatches];
 
@@ -1627,9 +1895,7 @@ function startLiveUpdates() {
   buildLivePanels();
   setInterval(buildLivePanels, LIVE_REFRESH_INTERVAL);
 
-  // Ticker de countdown — atualiza a cada segundo nos cards de palpite
   setInterval(() => {
-    // Atualiza timers de "começa em" nos cards abertos
     document.querySelectorAll('[id^="cd-"][data-kickoff]').forEach(el => {
       const kickoff = parseInt(el.dataset.kickoff);
       const secsLeft = Math.max(0, Math.floor((kickoff - Date.now()) / 1000));
@@ -1638,14 +1904,11 @@ function startLiveUpdates() {
       const sc = secsLeft % 60;
       if (secsLeft <= 0) {
         el.textContent = '00:00';
-        // Jogo começou — pode re-renderizar para mostrar "Ao Vivo"
-        // (buildLivePanels vai pegar no próximo ciclo de 60s)
       } else if (h > 0) {
         el.textContent = `${h}h ${mn.toString().padStart(2,'0')}m`;
       } else {
         el.textContent = `${mn.toString().padStart(2,'0')}:${sc.toString().padStart(2,'0')}`;
       }
-      // Atualiza a barra de progresso
       const card = el.closest('.match-card');
       if (card) {
         const bar = card.querySelector('.countdown-bar-fill');
@@ -1657,7 +1920,6 @@ function startLiveUpdates() {
       }
     });
 
-    // Atualiza minutagem dos jogos ao vivo nos cards
     document.querySelectorAll('[id^="cd-"]:not([data-kickoff])').forEach(el => {
       const matchId = parseInt(el.id.replace('cd-', ''));
       const match = MATCHES.find(m => m.id === matchId);
@@ -1675,7 +1937,6 @@ function startLiveUpdates() {
   }, 1000);
 }
 
-// Inicia após os dados carregarem
 window.addEventListener('load', () => {
   setTimeout(startLiveUpdates, 1800);
 });
