@@ -1349,9 +1349,9 @@
       <div class="sintese-layout">
         <div></div> <!-- Espaçador Invisível (Garante o centro perfeito) -->
         
-        <!-- Cartas Base (Centro Absoluto) -->
+        <!-- Figurinhas Base (Centro Absoluto) -->
         <div style="display:flex; flex-direction:column; align-items:center;">
-          <div style="font-size:0.8rem; color:var(--border); font-weight:bold; text-transform:uppercase; margin-bottom:8px; letter-spacing:1px;">Cartas Base</div>
+          <div style="font-size:0.8rem; color:var(--border); font-weight:bold; text-transform:uppercase; margin-bottom:8px; letter-spacing:1px;">Figurinhas Base</div>
           <div class="sintese-slots" id="sintese-slots-container" style="margin:0;">
             <div class="sintese-slot" onclick="removerDaSintese(0)">+</div>
             <div class="sintese-slot" onclick="removerDaSintese(1)">+</div>
@@ -1372,7 +1372,7 @@
         
       <!-- Quadro de Estatísticas Embaixo -->
       <div id="sintese-stats" style="width:100%; max-width:400px; margin: 0 auto; text-align:center; background:rgba(0,0,0,0.25); padding:15px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
-        <p style="color:var(--muted); font-size:0.9rem;">Insira as 3 cartas base para visualizar as probabilidades...</p>
+        <p style="color:var(--muted); font-size:0.9rem;">Insira as 3 figurinhas base para visualizar as probabilidades...</p>
       </div>
 
       <button class="sintese-btn" id="btn-fundir" style="margin-top:20px;" onclick="fundirFigurinhas()">Fundir Figurinhas</button>
@@ -1679,7 +1679,7 @@
     </div>
     
     <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 20px;">
-      <div style="font-size:0.95rem; font-weight:600;">Carta Selecionada: <b id="coringa-selecionada-text" style="color:#a855f7; text-transform:uppercase;">Nenhuma</b></div>
+      <div style="font-size:0.95rem; font-weight:600;">Figurinha Selecionada: <b id="coringa-selecionada-text" style="color:#a855f7; text-transform:uppercase;">Nenhuma</b></div>
       <button class="btn-save" style="background:#8b5cf6; width:auto; padding:10px 24px; margin-top:0;" onclick="confirmarCoringa()">Efetuar Troca</button>
     </div>
   </div>
@@ -3487,7 +3487,7 @@ function addToSintese(time, rara, totalQtd, displayQtd) {
   if (sinteseSlots.length < 3) {
     sinteseSlots.push({ time: time, rara: rara }); renderAlbum();
   } else if (!sinteseExtraSlot) {
-    if (rara) { showToast('⚠️ O Catalisador aceita APENAS cartas Comuns.'); return; }
+    if (rara) { showToast('⚠️ O Catalisador aceita APENAS figurinhas Comuns.'); return; }
     sinteseExtraSlot = { time: time, rara: rara }; renderAlbum();
   } else { 
     showToast('⚠️ A máquina já está cheia!'); 
@@ -3532,7 +3532,7 @@ function renderSinteseSlots() {
 function updateSinteseStats() {
   const pnl = document.getElementById('sintese-stats');
   if (sinteseSlots.length < 3) {
-     pnl.innerHTML = '<p style="color:rgba(255,255,255,0.6); font-size:0.9rem; text-align:center;">Insira as 3 cartas base para visualizar as probabilidades...</p>';
+     pnl.innerHTML = '<p style="color:rgba(255,255,255,0.6); font-size:0.9rem; text-align:center;">Insira as 3 figurinhas base para visualizar as probabilidades...</p>';
      return;
   }
   let raras = sinteseSlots.filter(s => s.rara).length;
@@ -3635,8 +3635,8 @@ function moveItem(item, fromArrStr, toArrStr, max) {
   let fromArr = fromArrStr === 'tradeMyInv' ? tradeMyInv : fromArrStr === 'tradeMyOffer' ? tradeMyOffer : fromArrStr === 'tradeTargetInv' ? tradeTargetInv : tradeTargetReq;
   let toArr = toArrStr === 'tradeMyInv' ? tradeMyInv : toArrStr === 'tradeMyOffer' ? tradeMyOffer : toArrStr === 'tradeTargetInv' ? tradeTargetInv : tradeTargetReq;
   
-  if (toArr.length >= max && toArrStr.includes('Offer')) { showToast("⚠️ Limite de 3 cartas!"); return; }
-  if (toArr.length >= max && toArrStr.includes('Req')) { showToast("⚠️ Limite de 3 cartas!"); return; }
+  if (toArr.length >= max && toArrStr.includes('Offer')) { showToast("⚠️ Limite de 3 figurinhas!"); return; }
+  if (toArr.length >= max && toArrStr.includes('Req')) { showToast("⚠️ Limite de 3 figurinhas!"); return; }
   
   let idx = fromArr.findIndex(x => x.id === item.id);
   if (idx > -1) { toArr.push(fromArr.splice(idx, 1)[0]); renderTradeUI(); }
@@ -3655,7 +3655,7 @@ function renderTradeUI() {
 async function enviarPropostaTroca() {
   let para = document.getElementById('sel-trade-user').value;
   if (!para) return showToast('⚠️ Escolha um usuário.');
-  if (tradeMyOffer.length === 0 || tradeTargetReq.length === 0) return showToast('⚠️ Coloque pelo menos 1 carta de cada lado.');
+  if (tradeMyOffer.length === 0 || tradeTargetReq.length === 0) return showToast('⚠️ Coloque pelo menos 1 figurinha de cada lado.');
 
   let offArr = tradeMyOffer.map(i => i.time);
   let qerArr = tradeTargetReq.map(i => i.time);
@@ -3734,7 +3734,7 @@ function openCoringaModal(qtd) {
   
   const RARAS_LIST = ["🇧🇷 Brasil", "Argentina", "França", "Inglaterra", "Espanha", "Alemanha", "Portugal", "Holanda", "Bélgica", "Uruguai"];
   
-  // Desenha as cartas na tela
+  // Desenha as figurinhas na tela
   TODAS_SELECOES.forEach(time => {
     let flagUrl = getFlagUrl(time);
     let rara = RARAS_LIST.includes(time);
@@ -3815,7 +3815,7 @@ function showPackAnimation(figurinhas, titulo) {
   const titleEl = document.getElementById('pack-results-title');
   
   let hasSecret = figurinhas.some(f => f.time === 'Itália' || f.time === 'Coringa');
-  titleEl.innerText = hasSecret ? "✨ CARTA SECRETA ENCONTRADA! ✨" : (titulo || "Novas Figurinhas!");
+  titleEl.innerText = hasSecret ? "✨ FIGURINHA SECRETA ENCONTRADA! ✨" : (titulo || "Novas Figurinhas!");
   titleEl.style.color = hasSecret ? "#c084fc" : "var(--gold)";
 
   animView.style.display = 'block'; resView.style.display = 'none'; modal.classList.add('open');
