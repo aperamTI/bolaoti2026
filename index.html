@@ -3592,8 +3592,14 @@ async function fundirFigurinhas() {
     if (json.status === 'success') {
       sinteseSlots = []; sinteseExtraSlot = null; await loadAlbumData(); 
       showPackAnimation(json.figurinhas, "Síntese Concluída!");
-    } else { showToast('❌ ' + (json.msg || 'Erro ao fundir.')); }
-  } catch(e) { showLoading(false); showToast('❌ Erro de conexão.'); }
+    } else { 
+      showToast('❌ ' + (json.msg || 'Erro ao fundir.')); 
+      // PADRONIZAÇÃO: Logout automático com 1.5s de delay
+      if (json.msg && (json.msg.toLowerCase().includes('sessão') || json.msg.toLowerCase().includes('token'))) {
+        setTimeout(handleSessionExpired, 1500);
+      }
+}
+  } catch(e) { showLoading(false); showToast('❌ Erro de conexão.'); logError('Erro de rede ao fundir figurinhas: ' + e.message, getLoggedUser(), 'error');}
 }
 
 // ──────────────── LÓGICA DO MERCADO DE TROCAS ────────────────
@@ -3664,8 +3670,17 @@ async function enviarPropostaTroca() {
   try {
     let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'enviarTroca', token: getToken(), user: getLoggedUser(), paraUser: para, oferece: offArr, quer: qerArr }) });
     let j = await res.json(); showLoading(false);
-    if(j.status==='success') { showToast('✅ Proposta Enviada!'); switchTradeTab('lista'); loadTrocas(); } else showToast('❌ Erro.');
-  } catch(e) { showLoading(false); showToast('❌ Erro.'); }
+    if(j.status==='success') { showToast('✅ Proposta Enviada!'); switchTradeTab('lista'); loadTrocas(); 
+    } else { 
+        // Agora ele mostra a mensagem real do servidor em vez de um "Erro" genérico
+        showToast('❌ ' + (json.msg || 'Erro ao enviar proposta.')); 
+        
+        // PADRONIZAÇÃO: Logout automático com 1.5s de delay
+        if (json.msg && (json.msg.toLowerCase().includes('sessão') || json.msg.toLowerCase().includes('token'))) {
+            setTimeout(handleSessionExpired, 1500);
+        }
+    }
+  } catch(e) { showLoading(false); showToast('❌ Erro.'); logError('Erro de rede ao enviar troca: ' + e.message, getLoggedUser(), 'error');}
 }
 
 function switchTradeTab(tab) {
@@ -3714,8 +3729,15 @@ async function responderTroca(id, resp) {
       if (j.extra && j.extra.length > 0) {
           setTimeout(() => { showPackAnimation(j.extra, "🎁 Bônus de Parceria!"); }, 500);
       }
-    } else showToast('❌ ' + (j.msg || 'Erro.'));
-  } catch(e) { showLoading(false); showToast('❌ Erro.'); }
+    } else { 
+        showToast('❌ ' + (json.msg || 'Erro ao responder troca.')); 
+        
+        // PADRONIZAÇÃO: Logout automático com 1.5s de delay
+        if (json.msg && (json.msg.toLowerCase().includes('sessão') || json.msg.toLowerCase().includes('token'))) {
+            setTimeout(handleSessionExpired, 1500);
+        }
+    }
+  } catch(e) { showLoading(false); showToast('❌ Erro.'); logError('Erro de rede ao responder troca: ' + e.message, getLoggedUser(), 'error');}
 }
 
 let coringaTargetSelecionado = "";
@@ -3785,8 +3807,13 @@ async function confirmarCoringa() {
     if (json.status === 'success') {
       closeModal('modal-coringa'); await loadAlbumData(); 
       showPackAnimation([json.figurinha], "Coringa Trocado!");
-    } else { showToast('❌ ' + (json.msg || 'Erro na troca.')); }
-  } catch(e) { showLoading(false); showToast('❌ Erro de conexão.'); }
+    } else { 
+      showToast('❌ ' + (json.msg || 'Erro na troca.')); 
+      if (json.msg && (json.msg.toLowerCase().includes('sessão') || json.msg.toLowerCase().includes('token'))) {
+        setTimeout(handleSessionExpired, 1500);
+      }
+    }
+  } catch(e) { showLoading(false); showToast('❌ Erro de conexão.'); logError('Erro de rede ao trocar Coringa: ' + e.message, getLoggedUser(), 'error');}
 }
 
 function switchRegrasTab(tab) {
@@ -3803,8 +3830,14 @@ async function abrirPacote(packId, packType) {
     if (!res.ok) throw new Error("Erro de servidor");
     let json = await res.json(); showLoading(false);
     if (json.status === 'success') { await loadAlbumData(); showPackAnimation(json.figurinhas, "Pacote Aberto!"); } 
-    else { showToast('❌ ' + (json.msg || 'Erro ao abrir pacote.')); }
-  } catch(e) { showLoading(false); showToast('❌ Erro de conexão.'); }
+    else { 
+	showToast('❌ ' + (json.msg || 'Erro ao abrir pacote.')); 
+	// PADRONIZAÇÃO: Verifica se é erro de sessão e dá 1.5s para o usuário ler o Toast
+        if (json.msg && (json.msg.toLowerCase().includes('sessão') || json.msg.toLowerCase().includes('token'))) {
+            setTimeout(handleSessionExpired, 1500);
+        }
+    }
+  } catch(e) { showLoading(false); showToast('❌ Erro de conexão.'); logError('Erro de rede ao abrir pacote: ' + e.message, user, 'error');}
 }
 
 function showPackAnimation(figurinhas, titulo) {
