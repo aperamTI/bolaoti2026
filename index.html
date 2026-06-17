@@ -1081,6 +1081,92 @@
   .pack-shine { position: absolute; top: 0; left: -150%; width: 50%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%); transform: skewX(-20deg); animation: shine 3s infinite; z-index: 1; }
   @keyframes shine { 0% { left: -150%; } 20% { left: 200%; } 100% { left: 200%; } }
   
+/* 🌫️ Efeito Especial: Névoa Orgânica e Tentáculos (Itália) */
+.efeito-nevoa-italia {
+    border: 2px solid #333 !important; 
+    /* Loop contínuo de 6 segundos (sem o 'alternate' para a fumaça não voltar de ré) */
+    animation: nevoaTentaculos 6s infinite linear;
+    z-index: 2; 
+}
+
+@keyframes nevoaTentaculos {
+    0% {
+        box-shadow:
+            0 0 15px 2px rgba(0,0,0,0.7), /* Núcleo da névoa grudado na carta */
+            
+            /* Fumaça 1 (Branca) e 2 (Preta): Nascendo perto da borda */
+            -2px -5px 8px 0px rgba(255,255,255,0.4),
+             4px  4px 10px 0px rgba(0,0,0,0.7),
+             
+            /* Fumaça 3 e 4: Totalmente evaporadas (invisíveis) lá longe */
+            -20px 15px 25px -8px rgba(255,255,255,0),
+             25px -20px 30px -10px rgba(0,0,0,0);
+    }
+    25% {
+        box-shadow:
+            0 0 12px 2px rgba(0,0,0,0.6),
+            
+            /* Fumaça 1 e 2: Esticando para fora (tentáculo) e começando a afinar e sumir */
+            -15px -20px 20px -4px rgba(255,255,255,0.1),
+             20px  15px 25px -5px rgba(0,0,0,0.3),
+             
+            /* Fumaça 3 e 4: Nascendo nos outros cantos da carta */
+            -4px  6px 10px 0px rgba(255,255,255,0.4),
+             5px -5px 12px 0px rgba(0,0,0,0.7);
+    }
+    50% {
+        box-shadow:
+            0 0 16px 2px rgba(0,0,0,0.7),
+            
+            /* Fumaça 1 e 2: Evaporaram completamente no ar (invisíveis) */
+            -28px -30px 25px -8px rgba(255,255,255,0),
+             30px  25px 30px -10px rgba(0,0,0,0),
+             
+            /* Fumaça 3 e 4: Esticando os tentáculos e afinando */
+            -18px  25px 22px -4px rgba(255,255,255,0.1),
+             25px -18px 25px -5px rgba(0,0,0,0.3);
+    }
+    75% {
+        box-shadow:
+            0 0 14px 2px rgba(0,0,0,0.6),
+            
+            /* Fumaça 1 e 2: Renascendo do núcleo para o próximo ciclo */
+            -3px -3px 10px 0px rgba(255,255,255,0.3),
+             2px  6px 12px 0px rgba(0,0,0,0.6),
+             
+            /* Fumaça 3 e 4: Evaporaram completamente no ar */
+            -30px  35px 25px -8px rgba(255,255,255,0),
+             35px -28px 30px -10px rgba(0,0,0,0);
+    }
+    100% {
+        box-shadow: /* O frame 100% tem que ser idêntico ao 0% pro loop ser invisível */
+            0 0 15px 2px rgba(0,0,0,0.7),
+            -2px -5px 8px 0px rgba(255,255,255,0.4),
+             4px  4px 10px 0px rgba(0,0,0,0.7),
+            -20px 15px 25px -8px rgba(255,255,255,0),
+             25px -20px 30px -10px rgba(0,0,0,0);
+    }
+}
+
+/* 💚💛 Efeito Easter Egg: Coração do Brasil */
+.efeito-coracao-brasil {
+    /* Traz a carta para frente, pinta a borda de amarelo e brilha verde */
+    z-index: 10 !important;
+    border: 2px solid #ffdf00 !important; 
+    box-shadow: 0 0 20px rgba(0, 156, 59, 0.8) !important;
+    
+    /* A animação dura 0.8s e vai se repetir 3 vezes (2.4 segundos no total) */
+    animation: batidaCoracao 0.8s ease-in-out 3;
+}
+
+@keyframes batidaCoracao {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.1); }   /* Primeira batida leve */
+    40% { transform: scale(1); }
+    60% { transform: scale(1.15); }  /* Segunda batida mais forte */
+    100% { transform: scale(1); }
+}
+
   /* COMUM: Cinza Fosco e sem brilho */
   .pack-3pts { background: linear-gradient(135deg, #9ca3af, #4b5563); border: 2px solid #d4d4d8; }
   .pack-3pts .pack-shine { display: none; } 
@@ -1782,7 +1868,7 @@
 //  CONFIGURAÇÃO
 // ════════════════════════════════════════
 
-const API_URL = "https://script.google.com/macros/s/AKfycbz9sf0gfFkiq-L1fWNI3Z5mKgDj12SUemCp2UyK6uaBuyVXHJxE2OeKXFlkMM6ESWy-/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyiCpE27gSqy80EItn976EoiQKY6SWDM5z9J7EEK3rcF-AdH2Yv-HA4aQxdNs-ik2TT/exec";
 
 // ════════════════════════════════════════
 //  SEGURANÇA E AUXILIARES
@@ -2194,6 +2280,22 @@ function checkAuth() {
   }
   updateUsersDropdown();
 }
+
+// ⏱️ Motor do Easter Egg do Brasil (A cada 5 minutos)
+setInterval(() => {
+    // Procura na tela se o usuário está com o inventário aberto e vendo o Brasil
+    let cardBrasil = document.querySelector('.carta-do-brasil');
+    
+    if (cardBrasil) {
+        // Injeta a animação do coração
+        cardBrasil.classList.add('efeito-coracao-brasil');
+        
+        // Remove a animação exatos 2.5 segundos depois (para ela poder rodar de novo na próxima vez)
+        setTimeout(() => {
+            cardBrasil.classList.remove('efeito-coracao-brasil');
+        }, 2500);
+    }
+}, 300000); // 300.000 milissegundos = 5 Minutos exatos
 
 function openProfileModal() {
   const user = getLoggedUser(); if (!user) return;
@@ -3457,10 +3559,11 @@ function renderCollection() {
     let displayQtd = qtd - inSlotCount;
     let flagUrl = getFlagUrl(time);
     let cardClass = displayQtd > 0 ? (rara ? 'rara' : '') : 'zero';
+    let classeBrasil = (time === "🇧🇷 Brasil" && qtd > 0) ? "carta-do-brasil" : "";
     if (qtd > 0 && time !== "Coringa" && time !== "Itália") uniqueCount++;
 
     html += `
-      <div class="sticker-card ${cardClass}" onclick="addToSintese('${time}', ${rara}, ${qtd}, ${displayQtd})">
+      <div class="sticker-card ${cardClass} ${classeBrasil}" onclick="addToSintese('${time}', ${rara}, ${qtd}, ${displayQtd})">
         <div class="sticker-qtd ${displayQtd>0?'':'zero'}">${displayQtd}</div>
         <img src="${flagUrl}" class="sticker-img" alt="${time}">
         <div class="sticker-name">${time}</div>
@@ -3471,7 +3574,7 @@ function renderCollection() {
   // Itália Tradição SÓ APARECE se a quantidade for maior que 0!
   let it = albumData.inventario.find(i => i.time === "Itália");
   if (it && it.qtd > 0) {
-    html += `<div class="sticker-card italia-card" onclick="showToast('TRADIÇÃO: 🇮🇹 Fora da Copa!')"><div class="sticker-qtd" style="background:#333;">${it.qtd}</div><img src="https://flagcdn.com/w160/it.png" class="sticker-img"><div class="sticker-name italia-name">Tradição</div></div>`;
+    html += `<div class="sticker-card italia-card efeito-nevoa-italia" onclick="showToast('TRADIÇÃO: 🇮🇹 Fora da Copa!')"><div class="sticker-qtd" style="background:#333;">${it.qtd}</div><img src="https://flagcdn.com/w160/it.png" class="sticker-img"><div class="sticker-name italia-name">Tradição</div></div>`;
   }
   document.getElementById('album-grid').innerHTML = html;
   document.getElementById('collection-count').innerText = `${uniqueCount}/48`;
@@ -3539,7 +3642,7 @@ function updateSinteseStats() {
   let hasExtra = sinteseExtraSlot !== null;
 
   let chanceRara = raras === 0 ? 5 : raras === 1 ? 35 : raras === 2 ? 68 : 100;
-  let extraChance = 18; let extraRaraChance = 4;
+  let extraChance = 20; let extraRaraChance = 6;
 
   if (hasExtra) {
      if (raras === 0) chanceRara += 6;
