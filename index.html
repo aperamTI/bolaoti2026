@@ -3823,14 +3823,14 @@ async function responderTroca(id, resp) {
   showLoading(true);
   try {
     let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'responderTroca', token: getToken(), user: getLoggedUser(), idTroca: id, resp: resp }) });
-    let j = await res.json(); showLoading(false);
-    if (j.status === 'success') {
+    let json = await res.json(); showLoading(false);
+    if (json.status === 'success') {
       showToast(resp === 'aceitar' ? '✅ Troca Concluída!' : '🚫 Cancelada.');
       loadTrocas(); loadAlbumData();
       
       // ANIMAÇÃO NA TELA EM VEZ DE MENSAGEM DO SISTEMA
-      if (j.extra && j.extra.length > 0) {
-          setTimeout(() => { showPackAnimation(j.extra, "🎁 Bônus de Parceria!"); }, 500);
+      if (json.extra && json.extra.length > 0) {
+          setTimeout(() => { showPackAnimation(json.extra, "🎁 Bônus de Parceria!"); }, 500);
       }
     } else { 
         showToast('❌ ' + (json.msg || 'Erro ao responder troca.')); 
