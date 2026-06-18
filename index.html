@@ -1461,7 +1461,7 @@
         <p style="color:var(--muted); font-size:0.9rem;">Insira as 3 figurinhas base para visualizar as probabilidades...</p>
       </div>
 
-      <button class="sintese-btn" id="btn-fundir" style="margin-top:20px;" onclick="fundirFigurinhas()">Fundir Figurinhas</button>
+      <button class="sintese-btn" id="btn-fundir" style="margin-top:20px;" onclick="tentarFundir()">Fundir Figurinhas</button>
     </div>
 
     <button class="btn-save" style="background:#0369a1; margin-bottom: 20px; position:relative;" onclick="openTrocaModal()">
@@ -1858,6 +1858,36 @@
   </div>
   <div class="chat-input-area">
     <input type="text" id="chat-input" placeholder="Digite uma mensagem..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+  </div>
+</div>
+
+<!-- MODAL AVISO DE SÍNTESE -->
+<div id="modal-sintese-aviso" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center;">
+  
+  <!-- Caixa principal do aviso -->
+  <div style="background: #22222a; padding: 25px; border-radius: 12px; max-width: 90%; width: 360px; text-align: center; border: 1px solid #ef4444; box-shadow: 0 8px 25px rgba(0,0,0,0.7); color: #fff;">
+    
+    <h2 style="color: #ef4444; margin-top: 0; margin-bottom: 15px; font-size: 1.6rem; text-transform: uppercase;">⚠️ Atenção!</h2>
+    
+    <p style="margin-bottom: 15px; font-size: 1.05rem;">
+      Ao confirmar, estas figurinhas serão <strong style="color: #ef4444;">DESTRUÍDAS</strong> e perdidas para sempre!
+    </p>
+    
+    <p style="margin-bottom: 20px; font-size: 0.9rem; color: #aaa; line-height: 1.5;">
+      A Máquina de Síntese queima suas cartas repetidas para forjar <strong style="color: #fff;">uma Figurinha Nova</strong> com chances elevadas de tirar uma Rara. Esta ação é irreversível!
+    </p>
+    
+    <div style="margin-bottom: 25px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <input type="checkbox" id="chk-skip-sintese" style="width: 16px; height: 16px; cursor: pointer;">
+      <label for="chk-skip-sintese" style="font-size: 0.85rem; color: #999; cursor: pointer;">Entendi o risco. Não mostrar novamente.</label>
+    </div>
+    
+    <!-- Botões -->
+    <div style="display: flex; gap: 10px; justify-content: center;">
+      <button onclick="cancelarSintese()" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #444; color: white; font-weight: bold; font-size: 1rem; cursor: pointer;">Cancelar</button>
+      <button onclick="confirmarSintese()" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #ef4444; color: white; font-weight: bold; font-size: 1rem; cursor: pointer;">Destruir e Fundir</button>
+    </div>
+    
   </div>
 </div>
 
@@ -3556,7 +3586,8 @@ function renderCollection() {
     let qtd = invItem ? invItem.qtd : 0;
     let rara = invItem ? invItem.rara : false;
     let inSlotCount = sinteseSlots.filter(s => s.time === time).length;
-    let displayQtd = qtd - inSlotCount;
+    let inExtraCount = (sinteseExtraSlot && sinteseExtraSlot.time === time) ? 1 : 0;
+    let displayQtd = qtd - inSlotCount - inExtraCount;
     let flagUrl = getFlagUrl(time);
     let cardClass = displayQtd > 0 ? (rara ? 'rara' : '') : 'zero';
     let classeBrasil = (time === "🇧🇷 Brasil" && qtd > 0) ? "carta-do-brasil" : "";
@@ -3969,6 +4000,41 @@ function showPackAnimation(figurinhas, titulo) {
     });
     container.innerHTML = html;
   }, 1500);
+}
+
+// Intercepta o clique no botão "Fundir"
+function tentarFundir() {
+    if (sinteseSlots.length < 3) {
+        showToast("⚠️ Coloque 3 figurinhas base primeiro!");
+        return;
+    }
+    
+    // Verifica se o usuário já pediu para pular o aviso no passado
+    if (localStorage.getItem('skipSinteseWarning') === 'true') {
+        fundirFigurinhas(); // Vai direto para a função que você já tem padronizada
+    } else {
+        // Abre o pop-up de alerta
+        document.getElementById('chk-skip-sintese').checked = false;
+        document.getElementById('modal-sintese-aviso').style.display = 'flex';
+    }
+}
+
+// Executada se ele clicar no botão vermelho "Destruir e Fundir"
+function confirmarSintese() {
+    if (document.getElementById('chk-skip-sintese').checked) {
+        localStorage.setItem('skipSinteseWarning', 'true');
+    }
+    document.getElementById('modal-sintese-aviso').style.display = 'none';
+    fundirFigurinhas(); 
+}
+
+// Executada se ele clicar em "Cancelar"
+function cancelarSintese() {
+    document.getElementById('modal-sintese-aviso').style.display = 'none';
+    // Devolve as figurinhas para o inventário limpando a máquina
+    sinteseSlots = [];
+    sinteseExtraSlot = null;
+    renderAlbum(); // Atualiza a tela para as cartas voltarem
 }
 </script>
 </body>
