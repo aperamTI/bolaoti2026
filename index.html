@@ -1809,7 +1809,10 @@
       <div class="steam-container">
         <div class="steam-col">
           <div class="steam-box">
-            <div class="steam-header" style="margin-bottom: 5px;">Seu inventário</div>
+            <div class="steam-header" style="margin-bottom: 5px;">
+              <span>Seu inventário</span>
+              <span id="trade-my-count" style="margin-left: auto; font-size: 0.85rem; color: var(--muted); font-weight: 700;">0/48</span>
+            </div>
             <div style="display:flex; gap:10px; font-size:0.75rem; margin-bottom:10px; padding:6px; background:var(--surface); border:1px solid var(--border); border-radius:6px; color:var(--text);">
               <label style="cursor:pointer; display:flex; align-items:center; gap:4px; flex:1;"><input type="checkbox" id="filtro-minhas-rep" onchange="renderTradeUI()"> Só Repetidas</label>
               <label style="cursor:pointer; display:flex; align-items:center; gap:4px; flex:1;"><input type="checkbox" id="filtro-ele-nao-tem" onchange="renderTradeUI()"> Úteis p/ ele(a)</label>
@@ -1827,7 +1830,10 @@
 
         <div class="steam-col">
           <div class="steam-box">
-            <div class="steam-header" style="margin-bottom: 5px;">Inventário dele(a)</div>
+            <div class="steam-header" style="margin-bottom: 5px;">
+              <span>Inventário dele(a)</span>
+              <span id="trade-target-count" style="margin-left: auto; font-size: 0.85rem; color: var(--muted); font-weight: 700;">0/48</span>
+            </div>
             <div style="display:flex; gap:10px; font-size:0.75rem; margin-bottom:10px; padding:6px; background:var(--surface); border:1px solid var(--border); border-radius:6px; color:var(--text);">
               <label style="cursor:pointer; display:flex; align-items:center; gap:4px; flex:1;"><input type="checkbox" id="filtro-dele-rep" onchange="renderTradeUI()"> Só Repetidas</label>
               <label style="cursor:pointer; display:flex; align-items:center; gap:4px; flex:1;"><input type="checkbox" id="filtro-eu-nao-tenho" onchange="renderTradeUI()"> Úteis p/ mim</label>
@@ -4024,33 +4030,44 @@ function renderTradeUI() {
   let deleRep = document.getElementById('filtro-dele-rep')?.checked;
   let euNaoTenho = document.getElementById('filtro-eu-nao-tenho')?.checked;
 
-  // 2. Filtra O SEU INVENTÁRIO (Lado Esquerdo)
+  // 2. 📊 CALCULA OS CONTADORES DO ÁLBUM (Figurinhas Únicas de 0 a 48)
+  // Conta quantos países diferentes existem somando a mesa com a zona de ofertas
+  let meuTotalUnicas = [...new Set([...tradeMyInv, ...tradeMyOffer].map(x => x.time))].length;
+  document.getElementById('trade-my-count').textContent = `${meuTotalUnicas}/48`;
+
+  let alvoSelecionado = document.getElementById('sel-trade-user').value;
+  let alvoTotalUnicas = alvoSelecionado ? [...new Set([...tradeTargetInv, ...tradeTargetReq].map(x => x.time))].length : 0;
+  document.getElementById('trade-target-count').textContent = `${alvoTotalUnicas}/48`;
+
+  // 3. Filtra O SEU INVENTÁRIO (Lado Esquerdo)
   let filteredMyInv = tradeMyInv.filter(i => {
-      // Total que eu possuo: disponíveis no painel + oferecidas na troca
       let myTotal = tradeMyInv.filter(x => x.time === i.time).length + tradeMyOffer.filter(x => x.time === i.time).length;
-      // Total que ele possui: disponíveis no painel dele + pedidas na troca
       let targetTotal = tradeTargetInv.filter(x => x.time === i.time).length + tradeTargetReq.filter(x => x.time === i.time).length;
 
-      if (myRep && myTotal <= 1) return false;       // Oculta se não for repetida sua
-      if (eleNaoTem && targetTotal > 0) return false;  // Oculta se o colega já tiver a carta
+      if (myRep && myTotal <= 1) return false;       
+      if (eleNaoTem && targetTotal > 0) return false;  
       return true;
   });
 
-  // 3. Filtra O INVENTÁRIO DELE (Lado Direito)
+  // 4. Filtra O INVENTÁRIO DELE (Lado Direito)
   let filteredTargetInv = tradeTargetInv.filter(i => {
       let myTotal = tradeMyInv.filter(x => x.time === i.time).length + tradeMyOffer.filter(x => x.time === i.time).length;
       let targetTotal = tradeTargetInv.filter(x => x.time === i.time).length + tradeTargetReq.filter(x => x.time === i.time).length;
 
-      if (deleRep && targetTotal <= 1) return false;  // Oculta se não for repetida dele
-      if (euNaoTenho && myTotal > 0) return false;    // Oculta se você já tiver a carta
+      if (deleRep && targetTotal <= 1) return false;  
+      if (euNaoTenho && myTotal > 0) return false;    
       return true;
   });
+
+  // 5. 🔤 ORDENAÇÃO ALFABÉTICA (Aplica o sort antes de renderizar na tela)
+  filteredMyInv.sort((a, b) => a.time.localeCompare(b.time, 'pt'));
+  filteredTargetInv.sort((a, b) => a.time.localeCompare(b.time, 'pt'));
 
   function draw(arr, fromStr, toStr, max) {
     return arr.map(i => `<div class="steam-item" style="${i.rara?'border-color:var(--gold);':''}" onclick="moveItem({id:'${i.id}', time:'${i.time}', rara:${i.rara}}, '${fromStr}', '${toStr}', ${max})"><img src="${getFlagUrl(i.time)}"></div>`).join('');
   }
 
-  // 4. Desenha as listas filtradas na tela
+  // 6. Desenha as listas ordenadas e filtradas na tela
   document.getElementById('trade-my-inv').innerHTML = draw(filteredMyInv, 'tradeMyInv', 'tradeMyOffer', 3) || '<p style="font-size:0.7rem; padding:5px; color:var(--muted);">Nenhuma figurinha.</p>';
   document.getElementById('trade-my-offer').innerHTML = draw(tradeMyOffer, 'tradeMyOffer', 'tradeMyInv', 99);
   
