@@ -2871,7 +2871,9 @@ function renderMatches() {
   const results = getResults();
   const selectedPhase = document.getElementById('sel-etapa')?.value || 'grupos';
   const filteredMatches = MATCHES.filter(m => m.phase === selectedPhase);
-  const uniqueGroups = [...new Set(filteredMatches.map(m => m.group))].sort();
+  
+  // 🚀 CORREÇÃO AQUI: Adicionado o { numeric: true } para ordenar os números corretamente!
+  const uniqueGroups = [...new Set(filteredMatches.map(m => m.group))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
   let html = '';
   uniqueGroups.forEach(grp => {
