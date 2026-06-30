@@ -6037,8 +6037,7 @@ async function responderTroca(id, resp) {
         const temTrofeu = json.extra && json.extra.some(f => f.time === "Troféu Copa 26" || f.time === "Taça Jules Rimet");
         
         if (temTrofeu) {
-          const figsAnimacao = json.extra.filter(f => f.time !== "Álbum Legado");
-          showPackAnimation(figsAnimacao, "🏆 ÁLBUM COMPLETO! Troféu Desbloqueado!");
+          showPackAnimation(json.extra, "🏆 ÁLBUM COMPLETO! Troféu Desbloqueado!");
         } else if (json.extra && json.extra.length > 0) {
           setTimeout(() => { showPackAnimation(json.extra, "🎁 Bônus de Parceria!"); }, 500);
         } else {
