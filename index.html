@@ -2000,20 +2000,15 @@
       return ultimoKickoff && new Date() >= ultimoKickoff;
   }
 
-  // Descobre de forma robusta quem ganhou o jogo
-  function getVencedorOficial(idJogo, fallbackHome, fallbackAway) {
+  function getVencedorOficial(idJogo, home, away) {
       let idStr = String(idJogo);
       let results = getResults();
       let ko = getKO();
       let r = results[idStr];
       if (!r || r.h === null || r.h === undefined || r.h === "") return null;
-      if (r.winner) return r.winner; // Pênaltis
-      
-      let realHome = ko[idStr] && ko[idStr].home ? ko[idStr].home : fallbackHome;
-      let realAway = ko[idStr] && ko[idStr].away ? ko[idStr].away : fallbackAway;
-      
-      if (Number(r.h) > Number(r.a)) return realHome;
-      if (Number(r.h) < Number(r.a)) return realAway;
+      if (r.winner) return r.winner;
+      if (Number(r.h) > Number(r.a)) return home;
+      if (Number(r.h) < Number(r.a)) return away;
       return ko[idStr] ? ko[idStr].winner : null;
   }
 
@@ -2062,7 +2057,7 @@
 
           m16.push({ home, away, locked, winner });
       }
-      window.m16Data = m16;
+      window.m16Data = m16; // Guarda globalmente para a auto-alocação dos vencedores reais
 
       const buildEmptySlot = (align) => {
           const ec = `<div class="empty-circle" style="display:flex;"></div>`;
@@ -2171,9 +2166,12 @@
           return showToast('❌ Seleção eliminada na vida real! Este palpite não pode mais avançar.');
       }
 
-      // 🛡️ BLINDAGEM 2: Se você quer avançar um time oficial do qual você nunca palpitou (O famoso roubo)
+      // 🛡️ BLINDAGEM 2: Impedir de roubar a seleção real se o usuário palpitou ERRADO
       if (elemento.id && fullTeamName && userTeamName !== fullTeamName) {
-          return showToast('❌ Galho quebrado! Você não palpitou nesta seleção originalmente, então não pode usá-la.');
+          // Se o usuário não tinha palpitado nada aqui (null/vazio), nós liberamos para ele seguir com a realidade
+          if (userTeamName && userTeamName !== 'null' && userTeamName !== '???') {
+              return showToast('❌ Galho quebrado! Você palpitou em outra seleção originalmente, então não pode usar esta.');
+          }
       }
 
       const match = elemento.closest('.bracket-match');
@@ -2184,11 +2182,10 @@
       }
 
       // 🛡️ BLINDAGEM 3 (A MÁXIMA): O GALHO MORTO
-      // Se qualquer um dos dois times DESTE confronto já tiver sido eliminado na vida real, a ramificação inteira trava!
       let hasEliminatedPick = false;
       times.forEach(t => {
           let uTeam = t.getAttribute('data-user-team');
-          if (uTeam && eliminatedTeams.includes(uTeam)) {
+          if (uTeam && uTeam !== 'null' && eliminatedTeams.includes(uTeam)) {
               hasEliminatedPick = true;
           }
       });
@@ -2258,8 +2255,9 @@
   }
 
   function desfazerCampeao() {
-      if (isBracketLocked()) return showToast('⏰ O prazo para simular acabou!');
-      
+      if (isBracketLocked()) {
+          return showToast('⏰ O prazo para simular acabou!');
+      }
       const circle = document.getElementById('sim-champion-circle');
       if (circle.classList.contains('empty')) return;
       circle.removeAttribute('data-team'); 
