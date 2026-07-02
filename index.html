@@ -676,6 +676,19 @@
     margin: 0 auto;
   }
 
+  #missions-sidebar-container .live-sidebar-title {
+      color: var(--text) !important;
+  }
+  
+  .mission-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+  .mission-title { font-size: 0.8rem; font-weight: 700; color: var(--text); display: flex; justify-content: space-between; margin-bottom: 5px; }
+  .mission-bar-bg { height: 6px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .mission-bar-fill { height: 100%; background: var(--pts10); transition: width 0.5s; }
+  .btn-claim-mission { width: 100%; padding: 10px; background: #6366f1; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; font-family: 'Barlow Condensed'; transition: background 0.2s; opacity: 0.5; pointer-events: none; }
+  .btn-claim-mission.ready { opacity: 1; pointer-events: auto; background: var(--gold); color: #111; animation: pulseGlow 2s infinite; }
+  .btn-claim-mission.ready:hover { background: #fde047; }
+  @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 5px rgba(255,215,0,0.5); } 50% { box-shadow: 0 0 15px rgba(255,215,0,0.8); } }
+
   .live-sidebar {
     width: 220px;
     flex-shrink: 0;
@@ -1236,7 +1249,28 @@
   100% { opacity: 0; transform: scale(2.5) translateY(-20px); } 
 }
 
-  /* ══════════════════════════════════════════
+/* PSEUDO-RANDÔMICO (COMUM E RARO) */
+  .pack-pseudo { background: linear-gradient(135deg, #4c1d95, #2563eb, #0ea5e9); border: 2px solid #60a5fa; }
+  .pack-pseudo-rara { background: linear-gradient(135deg, #581c87, #7e22ce, #be185d); border: 2px solid var(--gold); box-shadow: 0 0 15px rgba(255,215,0,0.5); }
+  .pack-pseudo .pack-title, .pack-pseudo-rara .pack-title { color: #fff; text-shadow: 0 0 10px #a855f7; font-size: 1.3rem; }
+  
+  .pack-pseudo-q {
+      position: absolute; top: 15px; left: 0; right: 0; text-align: center;
+      font-size: 1.4rem; color: rgba(255,255,255,0.4); font-weight: 900;
+      letter-spacing: 12px; animation: floatQuestion 3s ease-in-out infinite;
+      z-index: 3; pointer-events: none;
+  }
+  @keyframes floatQuestion {
+      0%, 100% { transform: translateY(0); opacity: 0.2; }
+      50% { transform: translateY(-6px); opacity: 0.8; text-shadow: 0 0 10px #fff; }
+  }
+  
+  /* Efeito Hover nas Cartas de Escolha */
+  .carta-escolha { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+  .carta-escolha:hover { transform: scale(1.15) translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.6); z-index: 10; border-color: var(--green); }
+  .carta-rejeitada { filter: grayscale(100%) blur(2px); opacity: 0.4; pointer-events: none; transform: scale(0.9); transition: all 0.5s; }
+  
+/* ══════════════════════════════════════════
      🏛️  ÁLBUM LEGADO — ESTILOS COMPLETOS
      ══════════════════════════════════════════ */
 
@@ -1663,6 +1697,13 @@
     <div class="live-sidebar-title"><span class="live-dot"></span> Ao Vivo</div>
     <div id="live-left-content"><div class="live-empty">Carregando...</div></div>
     <div class="live-update-time" id="live-update-time"></div>
+    
+    <div id="missions-sidebar-container" style="display: none; margin-top: 20px;">
+        <div class="live-sidebar-title" style="color:var(--gold);">🎯 Missões Semanais</div>
+        <div id="missions-content">
+           <div class="live-empty">Carregando...</div>
+        </div>
+    </div>
   </aside>
 
   <div class="center-content">
@@ -1759,8 +1800,8 @@
       </div>
     </div>
 
-    <div class="etapa-row">
-      <div class="user-select-wrap">
+    <div class="etapa-row" style="align-items: center; justify-content: space-between;">
+      <div class="user-select-wrap" style="flex: 1; margin-bottom: 0;">
         <label>📅 Selecione a Etapa da Copa:</label>
         <select id="sel-etapa" onchange="renderMatches(); loadUserPalpites();">
           <option value="grupos">Fase de Grupos</option>
@@ -1770,6 +1811,10 @@
           <option value="semi">Semifinais</option>
           <option value="final">Grande Final</option>
         </select>
+      </div>
+      <div style="text-align:center; flex: 1;">
+          <div style="font-size:0.75rem; font-weight:700; color:var(--muted); text-transform:uppercase;">Assiduidade Perfeita</div>
+          <div id="assiduidade-tracker" style="font-family:'Barlow Condensed'; font-size:1.1rem; font-weight:900; color:var(--green);">0/87 Jogos</div>
       </div>
       <button class="btn-save-top" onclick="savePalpites()" title="Salvar palpites">💾 Salvar</button>
     </div>
@@ -3178,6 +3223,24 @@
   </div>
 </div>
 
+<div id="modal-assiduidade" style="display: none; position: fixed; z-index: 99999; left: 0; top: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div style="max-width: 400px; width: 90%; text-align: center; background: linear-gradient(135deg, var(--surface), var(--card)); border: 2px solid var(--gold); border-radius: 12px; padding: 30px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <h2 style="color: var(--gold); font-family: 'Barlow Condensed'; font-size: 2.2rem; text-transform: uppercase; margin-bottom: 10px; line-height: 1;">🏆 ASSIDUIDADE PERFEITA!</h2>
+        <p style="color: var(--text); font-size: 1.05rem; margin-bottom: 20px;">Parabéns! Você ganhou um <b style="color: #a855f7;">Pacote Pseudo-Raro</b> por ter palpitado em todos os jogos da <span id="assiduidade-fase-nome" style="font-weight: bold; color: var(--green);">Fase</span>!</p>
+        
+        <div class="pack-item pack-pseudo-rara" style="margin: 0 auto 20px auto; pointer-events: none; transform: scale(1.1);">
+            <div class="pack-shine"></div>
+            <div class="pack-pseudo-q">? ? ?</div>
+            <div class="pack-content">
+                <div class="pack-title">Pseudo Raro</div>
+                <div class="pack-badge">⭐ Prêmio</div>
+            </div>
+        </div>
+        
+        <button class="btn-save" style="width: 100%; padding: 12px; font-size: 1.1rem; cursor: pointer;" onclick="document.getElementById('modal-assiduidade').style.display = 'none'">Resgatar no Inventário</button>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <script>
@@ -3185,7 +3248,7 @@
 //  CONFIGURAÇÃO
 // ════════════════════════════════════════
 
-const API_URL = "https://script.google.com/macros/s/AKfycbxZIwIb3_7T4F8d6R2_h1vRhXb4mGL25l5XpCsbkGNqX9dp_O1hDIzffPIEbET3ZFof/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwh1B4PvqjuTt9JAtw2IbI0NKUdAZRcoNiYy4jZlVuSVgJvnkLHLcjqv_XXseWkd6fY/exec";
 
 // ════════════════════════════════════════
 //  SEGURANÇA E AUXILIARES
@@ -3655,6 +3718,7 @@ function checkAuth() {
     renderMatches(); 
     loadUserPalpites();
     if(typeof loadAlbumData === 'function') loadAlbumData(); // Chama o álbum!
+	loadMissions();
   } else {
     document.getElementById('login-user').value = ''; 
     document.getElementById('login-pass').value = '';
@@ -4123,15 +4187,33 @@ function updatePtsDisplay(id) {
 function loadUserPalpites() {
   const user = getLoggedUser(); if(!user) return;
   const data = getData();
+  const etapaSelecionada = document.getElementById('sel-etapa') ? document.getElementById('sel-etapa').value : 'grupos';
+  let palpitesFeitos = 0;
+  let totalFase = 0;
+
   MATCHES.forEach(m => {
+    if (m.phase === etapaSelecionada) totalFase++; // Conta quantos jogos existem nessa fase
+
     const phEl = document.getElementById(`ph-${m.id}`), paEl = document.getElementById(`pa-${m.id}`);
     if (phEl && paEl) {
       const p = data[`${user}__${m.id}`];
       phEl.value = (p && p.h !== undefined && p.h !== null) ? p.h : '';
       paEl.value = (p && p.a !== undefined && p.a !== null) ? p.a : '';
+      
+      // Conta se o cara palpitou no jogo DESTA fase
+      if (m.phase === etapaSelecionada && p && p.h !== undefined && p.h !== null && p.h !== '') {
+          palpitesFeitos++;
+      }
       updatePtsDisplay(m.id);
     }
   });
+
+  const trk = document.getElementById('assiduidade-tracker');
+  if (trk) {
+      trk.innerText = `${palpitesFeitos}/${totalFase} Jogos`;
+      // Fica Dourado se bater a meta, e reseta para a cor normal senão
+      trk.style.color = (palpitesFeitos === totalFase && totalFase > 0) ? '#eab308' : 'var(--text)';
+  }
 }
 
 async function savePalpites() {
@@ -4184,6 +4266,7 @@ async function savePalpites() {
       renderRanking(); 
       // ATUALIZA A TELA: Reverte visualmente qualquer palpite que o banco tenha falhado em salvar
       loadUserPalpites();
+      if (typeof loadMissions === 'function') loadMissions();
     } else { 
       showToast('❌ ' + (json.msg || 'Erro ao salvar palpites.')); 
       logError('Erro ao salvar palpites: ' + json.msg, user, 'error');
@@ -5086,6 +5169,69 @@ async function sendChatMessage() {
   }
 }
 
+async function loadMissions() {
+    const user = getLoggedUser();
+    if (!user) return;
+    
+    try {
+        let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getMissions', token: getToken() }) });
+        let json = await res.json();
+        
+        if (json.status === 'success') {
+            const mc = document.getElementById('missions-content');
+            if (json.claimed) {
+                mc.innerHTML = `<div style="text-align:center; padding:15px 5px; color:var(--pts10); font-weight:bold; font-size:0.85rem; background:rgba(34, 197, 94, 0.1); border-radius:8px; border:1px solid var(--pts10);">✅ Missões da semana concluídas! Novas tarefas no Domingo.</div>`;
+                return;
+            }
+            
+            const p = json.progress;
+            const percTroca = (p.trocas / p.goalTrocas) * 100;
+            const percSintese = (p.sintese / p.goalSintese) * 100;
+            const percPalpite = (p.palpites / p.goalPalpites) * 100;
+            
+            const allDone = (p.trocas >= p.goalTrocas) && (p.sintese >= p.goalSintese) && (p.palpites >= p.goalPalpites);
+            
+            mc.innerHTML = `
+                <div class="mission-box">
+                    <div class="mission-title"><span>🤝 Fazer Trocas</span> <span style="color:${percTroca>=100?'var(--pts10)':'var(--text)'}">${p.trocas}/${p.goalTrocas}</span></div>
+                    <div class="mission-bar-bg"><div class="mission-bar-fill" style="width:${percTroca}%"></div></div>
+                </div>
+                <div class="mission-box">
+                    <div class="mission-title"><span>🧬 Usar Forja/Síntese</span> <span style="color:${percSintese>=100?'var(--pts10)':'var(--text)'}">${p.sintese}/${p.goalSintese}</span></div>
+                    <div class="mission-bar-bg"><div class="mission-bar-fill" style="width:${percSintese}%"></div></div>
+                </div>
+                <div class="mission-box">
+                    <div class="mission-title"><span>💾 Salvar Palpites</span> <span style="color:${percPalpite>=100?'var(--pts10)':'var(--text)'}">${p.palpites}/${p.goalPalpites}</span></div>
+                    <div class="mission-bar-bg"><div class="mission-bar-fill" style="width:${percPalpite}%"></div></div>
+                </div>
+                <button class="btn-claim-mission ${allDone ? 'ready' : ''}" onclick="claimMissions('${json.weekId}')">
+                    ${allDone ? '🎁 Resgatar Pacote' : '⏳ Conclua para ganhar'}
+                </button>
+            `;
+        }
+    } catch(e) {}
+}
+
+async function claimMissions(weekId) {
+    showLoading(true);
+    try {
+        let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'claimMissions', token: getToken(), weekId: weekId }) });
+        let json = await res.json();
+        showLoading(false);
+        if (json.status === 'success') {
+            showToast("🎁 Pacote Semanal Resgatado! Ele está na aba do Álbum.");
+            loadMissions();
+            loadAlbumData(); // Atualiza os pacotes lá na tela do álbum
+            confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 }, zIndex: 9999, colors: ['#4ade80', '#eab308'] });
+        } else {
+            showToast("❌ " + (json.msg || "Erro ao resgatar."));
+        }
+    } catch(e) {
+        showLoading(false);
+        showToast("❌ Erro de rede.");
+    }
+}
+
 // ════════════════════════════════════════
 //  ÁLBUM DE FIGURINHAS (LÓGICA FRONTAL)
 // ════════════════════════════════════════
@@ -5377,17 +5523,23 @@ function renderPacks() {
   // Verifica se existe pacote mítico a resgatar (vindo do backend como tipo 'mitico')
   // Pacotes míticos são adicionados pelo admin via backend — checamos o inventário
   const LABELS_PREMIO = {
-    mitico:    { cls: 'pack-mitico',  titulo: 'Mítico',    badge: '🏆 Prêmio Grupos' },
-    brilhante: { cls: 'pack-10pts',   titulo: 'Brilhante', badge: '🏆 Prêmio Grupos' },
-    dourado:   { cls: 'pack-5pts',    titulo: 'Dourado',   badge: '🏆 Prêmio Grupos' },
-    c1:        { cls: 'pack-3pts',    titulo: 'Comum',     badge: '🏆 Prêmio Grupos' },
+    mitico:        { cls: 'pack-mitico',       titulo: 'Mítico',           badge: '🏆 Prêmio' },
+    brilhante:     { cls: 'pack-10pts',        titulo: 'Brilhante',        badge: '🏆 Prêmio' },
+    dourado:       { cls: 'pack-5pts',         titulo: 'Dourado',          badge: '🏆 Prêmio' },
+    c1:            { cls: 'pack-3pts',         titulo: 'Comum',            badge: '🏆 Prêmio' },
+    'pseudo':      { cls: 'pack-pseudo',       titulo: 'Pseudo-Randômico',     badge: '❓ Escolha 1' },
+    'pseudo-rara': { cls: 'pack-pseudo-rara',  titulo: 'Pseudo-Raro',      badge: '❓ Escolha 1' },
   };
   (albumData.pacotesPremio || []).forEach(pid => {
     if (albumData.resgatados.includes(pid)) return;
-    const partes = pid.split('_'); // ["premio","grupos","mitico","NomeUser"]
+    const partes = pid.split('_'); 
     const tipo = partes[2] || 'c1';
     const L = LABELS_PREMIO[tipo] || LABELS_PREMIO['c1'];
-    html += `<div class="pack-item ${L.cls}" data-id="${pid}" data-type="${tipo}" onclick="abrirPacote('${pid}', '${tipo}')"><div class="pack-shine"></div><div class="pack-content"><div class="pack-title">${L.titulo}</div><div class="pack-badge">${L.badge}</div></div></div>`;
+    
+    // 🚀 Injeta a interrogação isoladamente só nos pacotes pseudo
+    let extraQ = tipo.includes('pseudo') ? '<div class="pack-pseudo-q">? ? ?</div>' : '';
+    
+    html += `<div class="pack-item ${L.cls}" data-id="${pid}" data-type="${tipo}" onclick="abrirPacote('${pid}', '${tipo}')"><div class="pack-shine"></div>${extraQ}<div class="pack-content"><div class="pack-title">${L.titulo}</div><div class="pack-badge">${L.badge}</div></div></div>`;
     packsCount++;
   });
 
@@ -5400,7 +5552,7 @@ function renderPacks() {
       </button>
     </div>`;
   }
-
+  verificarAlertaAssiduidade();
   document.getElementById('packs-container').innerHTML = btnAbrirTodos + (html || '<p style="font-size: 0.85rem; color: var(--muted); padding: 10px;">Sem pacotes no momento. Acompanhe os jogos!</p>');
 }
 
@@ -5623,12 +5775,14 @@ function updateSinteseStats() {
   }
   
   // Impede erro caso a função isLegadaFigurinha não esteja definida no contexto
+  let isLegadaSintese = sinteseSlots.every(s => (typeof isLegadaFigurinha === 'function' && isLegadaFigurinha(s.time)) || s.tipo === 'legada' || s.tipo === 'legada-rara');
   let raras = sinteseSlots.filter(s => s.rara || (typeof isLegadaFigurinha === 'function' && isLegadaFigurinha(s.time) && getRaridadeLegada(s.time) !== 'legada')).length;
   let hasExtra = sinteseExtraSlot !== null;
-  const temLegado = albumOriginalCompleto();
+  const temLegado = typeof albumOriginalCompleto === 'function' ? albumOriginalCompleto() : false;
 
   let chanceRara = raras === 0 ? 5 : raras === 1 ? 35 : raras === 2 ? 68 : 100;
   let extraChance = 20; let extraRaraChance = 6;
+  let chanceLendaria = raras * 1; // 🚀 1% por figurinha rara
 
   if (hasExtra) {
      if (raras === 0) chanceRara += 6;
@@ -5642,32 +5796,39 @@ function updateSinteseStats() {
 
   let html = `<h4 style="color:var(--gold); margin-bottom:8px; font-family:'Barlow Condensed'; font-size:1.2rem; text-transform:uppercase; text-align:center;">📊 Previsão da Síntese</h4>`;
   
+  if (chanceLendaria > 0) {
+      html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:4px; color:var(--legacy-legendary-cyan);"><span>⭐ Drop Lendário (Brasil 70):</span> <b style="text-shadow:0 0 5px var(--legacy-legendary-cyan);">${chanceLendaria}%</b></div>`;
+  }
+
   if (raras < 3) {
      let italia = hasItalia ? 1 : 0;
-     let chanceLegada = temLegado ? Math.round((100 - italia - chanceRara) / 2) : 0;
-     let chanceComum  = temLegado ? Math.round((100 - italia - chanceRara) / 2) : 100 - chanceRara - italia;
-     let chanceLegadaRara  = temLegado ? Math.round(chanceRara / 2) : 0;
-     if (temLegado) {
-      html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:4px;"><span>Chance de Rara:</span> <b>${chanceLegadaRara}%</b></div>`;
+     let chanceLegada = temLegado && !isLegadaSintese ? Math.round((100 - italia - chanceLendaria - chanceRara) / 2) : 0;
+     let chanceComum  = temLegado && !isLegadaSintese ? Math.round((100 - italia - chanceLendaria - chanceRara) / 2) : 100 - chanceRara - chanceLendaria - italia;
+     let chanceLegadaRara  = temLegado && !isLegadaSintese ? Math.round(chanceRara / 2) : 0;
+     let chanceNovaRara = temLegado && !isLegadaSintese ? Math.round(chanceRara / 2) : chanceRara;
+
+     if (temLegado && !isLegadaSintese) {
+      html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:4px;"><span>Chance de Rara 2026:</span> <b>${chanceNovaRara}%</b></div>`;
       html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:4px; color:var(--legacy-sepia);"><span>Chance de Legada Rara:</span> <b>${chanceLegadaRara}%</b></div>`;
     } else {
       html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:0px;"><span>Chance de Rara:</span> <b>${chanceRara}%</b></div>`;
     }
      html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:${temLegado?'4':'0'}px;"><span>Chance de Comum:</span> <b style="color:rgba(255,255,255,0.7);">${chanceComum}%</b></div>`;
-     if (temLegado) {
-       html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; color:var(--legacy-sepia);"><span>Chance de Legada:</span> <b>${chanceLegada}%</b></div>`;
+     if (temLegado && !isLegadaSintese) {
+       html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; color:var(--legacy-sepia);"><span>Chance de Legada Comum:</span> <b>${chanceLegada}%</b></div>`;
      }
   } else {
-     if (temLegado) {
-       html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:4px;"><span>Nova Figurinha Garantida:</span> <b style="color:var(--gold);">100% RARA / LEGADA</b></div>`;
+     if (temLegado && !isLegadaSintese) {
+       html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:4px;"><span>Figurinha Garantida:</span> <b style="color:var(--gold);">100% RARA (50/50 Legado)</b></div>`;
      } else {
-       html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:4px;"><span>Nova Figurinha Garantida:</span> <b style="color:var(--gold);">100% RARA</b></div>`;
+       html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:4px;"><span>Figurinha Garantida:</span> <b style="color:var(--gold);">100% RARA</b></div>`;
      }
 
      html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:4px;"><span>Chance de +1 Bônus:</span> <b>${extraChance}%</b></div>`;
 
-     if (temLegado) {
-       html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:4px;"><span>Chance de Rara Bônus:</span> <b>${extraRaraChance/2}%</b></div>`;
+     if (temLegado && !isLegadaSintese) {
+       html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:4px;"><span>Chance de Rara Bônus:</span> <b>${Math.round(extraRaraChance/2)}%</b></div>`;
+       html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-top:4px; color:var(--legacy-sepia);"><span>Chance Legada Rara Bônus:</span> <b>${Math.round(extraRaraChance/2)}%</b></div>`;
      } else {
        html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:4px;"><span>Chance de Rara Bônus:</span> <b>${extraRaraChance}%</b></div>`;
      }
@@ -5677,24 +5838,18 @@ function updateSinteseStats() {
      html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-top:6px; padding-top:6px; border-top: 1px dashed rgba(255,255,255,0.2);">
                <span style="color:${corSecreta};">Drop Místico (${nomeSecreta}):</span> 
                <b style="color:${corSecreta}; text-shadow:0 0 5px ${corSecreta};">1%</b></div>`;
-     if (temLegado) {
-       html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-top:4px; color:var(--legacy-sepia);"><span>Chance Legada Rara Bônus:</span> <b>${Math.round(extraRaraChance/2)}%</b></div>`;
-     }
   }
 
   // OS BANNERS DE BUFF
   if (hasExtra) html += `<div style="background:rgba(74,222,128,0.2); border:1px solid #4ade80; color:#4ade80; font-size:0.8rem; padding:6px; border-radius:4px; margin-top:8px; font-weight:bold; text-align:center;">✨ Buff do Catalisador Ativo!</div>`;
   if (hasItalia) html += `<div style="background:rgba(168,85,247,0.2); border:1px solid #a855f7; color:#c084fc; font-size:0.8rem; padding:4px; border-radius:4px; margin-top:5px; font-weight:bold; text-align:center;">🔮 Passiva da Tradição: +1% Drop Raro</div>`;
   
-  // BANNER DO TROFÉU
   let temTrofeu = albumData.inventario.some(i => i.time === "Troféu Copa 26" && i.qtd > 0);
   let temTaca = albumData.inventario.some(i => i.time === "Taça Jules Rimet" && i.qtd > 0);
   if (temTrofeu || temTaca) {
       html += `<div style="background:rgba(202,138,4,0.2); border:1px solid #ca8a04; color:#fde047; font-size:0.8rem; padding:4px; border-radius:4px; margin-top:5px; font-weight:bold; text-align:center;">🏆 Passivas de Troféus Ativas: +10% Drop Extra!</div>`;
   }
 
-  if (temLegado) html += `<div style="background:rgba(200,169,110,0.15); border:1px solid var(--legacy-sepia-dim); color:var(--legacy-sepia); font-size:0.8rem; padding:4px; border-radius:4px; margin-top:5px; font-weight:bold; text-align:center;">🏛️ Álbum Legado desbloqueado — figurinhas legadas incluídas!</div>`;
-  
   pnl.innerHTML = html;
 }
 
@@ -5711,6 +5866,7 @@ async function fundirFigurinhas() {
     if (json.status === 'success') {
       sinteseSlots = []; sinteseExtraSlot = null; await loadAlbumData(); 
       showPackAnimation(json.figurinhas, "Síntese Concluída!");
+      if (typeof loadMissions === 'function') loadMissions();
     } else { 
       showToast('❌ ' + (json.msg || 'Erro ao fundir.')); 
       if (json.msg && (json.msg.toLowerCase().includes('sessão') || json.msg.toLowerCase().includes('token'))) {
@@ -6077,6 +6233,7 @@ async function responderTroca(id, resp) {
     let json = await res.json(); showLoading(false);
     if (json.status === 'success') {
       loadTrocas(); await loadAlbumData();
+      if (typeof loadMissions === 'function') loadMissions();
       if (resp === 'aceitar') {
         // 🚀 Atualizado para brilhar se ganhar QUALQUER um dos dois Troféus!
         const temTrofeu = json.extra && json.extra.some(f => f.time === "Troféu Copa 26" || f.time === "Taça Jules Rimet");
@@ -6248,6 +6405,17 @@ function switchRegrasTab(tab) {
 
 async function abrirPacote(packId, packType) {
   const user = getLoggedUser(); showLoading(true);
+
+  // 🚀 SE FOR PSEUDO, REDIRECIONA PARA A ROTA ESPECIAL
+  if (packType.includes('pseudo')) {
+      try {
+          let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'abrirPacotePseudo', token: getToken(), packId: packId, packType: packType }) });
+          let json = await res.json(); showLoading(false);
+          if (json.status === 'success') { showPseudoAnimation(json.opcoes, packId, "Escolha Seu Destino"); } 
+          else { showToast('❌ ' + (json.msg || 'Erro.')); }
+      } catch(e) { showLoading(false); showToast('❌ Erro.'); }
+      return;
+  }
   try {
     let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'abrirPacote', token: getToken(), user: user, packId: packId, packType: packType }) });
     if (!res.ok) throw new Error("Erro de servidor");
@@ -6308,6 +6476,103 @@ async function abrirTodosOsPacotes() {
      showLoading(false);
      showToast('❌ Erro de conexão.');
   }
+}
+
+function showPseudoAnimation(opcoes, packId, titulo) {
+  const modal = document.getElementById('modal-pack');
+  const animView = document.getElementById('pack-animation-view');
+  const resView = document.getElementById('pack-results-view');
+  const container = document.getElementById('revealed-cards-container');
+  const titleEl = document.getElementById('pack-results-title');
+
+  titleEl.innerText = "✨ ESCOLHA SEU DESTINO! ✨";
+  titleEl.style.color = "#c084fc";
+
+  // Reseta a animação do pacote de papel
+  document.getElementById('pack-top').style.animation = '';
+  document.getElementById('pack-top').style.opacity = '1';
+  document.getElementById('pack-bottom').style.animation = '';
+  document.getElementById('pack-bottom').style.opacity = '1';
+  document.getElementById('pack-sparkles').style.animation = '';
+  document.getElementById('pack-sparkles').style.opacity = '0';
+
+  animView.style.display = 'block'; resView.style.display = 'none'; modal.classList.add('open');
+
+  setTimeout(() => {
+    playSom('pacote');
+    document.getElementById('pack-top').style.animation = 'packTopFly 0.5s ease-in forwards';
+    document.getElementById('pack-bottom').style.animation = 'packBottomDrop 0.5s ease-in forwards';
+    document.getElementById('pack-sparkles').style.animation = 'sparkleOut 0.6s ease-out forwards';
+  }, 900);
+
+  setTimeout(() => {
+    animView.style.display = 'none'; resView.style.display = 'block';
+    // Esconde o botão Continuar até a pessoa escolher
+    const btnContinuar = resView.querySelector('.btn-save');
+    if(btnContinuar) btnContinuar.style.display = 'none';
+
+    let html = '';
+    opcoes.forEach((fig, index) => {
+      let flagUrl = getFlagUrl(fig.time);
+      let raraCls = fig.rara || fig.time === 'Coringa' || fig.time === 'Itália' ? 'rara' : '';
+      
+      // Injeta o ID e a função de clique na carta
+      html += `<div class="revealed-card carta-escolha ${raraCls}" id="pseudo-card-${index}" onclick="confirmarEscolhaPseudo('${packId}', ${index}, '${fig.time}')">
+                 <img src="${flagUrl}" alt="${fig.time.replace('🇧🇷 ', '')}">
+                 <div class="name">${fig.time.replace('🇧🇷 ', '')}</div>
+               </div>`;
+    });
+    container.innerHTML = html;
+  }, 1600);
+}
+
+async function confirmarEscolhaPseudo(packId, indexEscolhido, timeNome) {
+    // Congela a tela para evitar duplo clique
+    document.querySelectorAll('.carta-escolha').forEach(el => el.style.pointerEvents = 'none');
+    showLoading(true);
+
+    try {
+        let res = await fetch(API_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ action: 'escolherPseudo', token: getToken(), user: getLoggedUser(), packId: packId, escolhaIndex: indexEscolhido }) 
+        });
+        let json = await res.json();
+        showLoading(false);
+
+        if (json.status === 'success') {
+            await loadAlbumData();
+            playSom('sintese'); // Toca um som de sucesso
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.5 }, zIndex: 3000, colors: ['#4c1d95', '#0ea5e9'] });
+            
+            document.getElementById('pack-results-title').innerText = "ESCOLHA REGISTRADA!";
+            document.getElementById('pack-results-title').style.color = "var(--green)";
+
+            // Apaga visualmente as cartas que ele rejeitou
+            document.querySelectorAll('.carta-escolha').forEach((el, idx) => {
+                if (idx !== indexEscolhido) {
+                    el.classList.remove('carta-escolha');
+                    el.classList.add('carta-rejeitada');
+                } else {
+                    el.style.transform = 'scale(1.2)'; // Dá um zoom na carta escolhida
+                    el.style.borderColor = 'var(--green)';
+                    el.style.boxShadow = '0 0 20px rgba(34,197,94,0.8)';
+                }
+            });
+
+            // Libera o botão continuar
+            const btnContinuar = document.getElementById('pack-results-view').querySelector('.btn-save');
+            if(btnContinuar) {
+                btnContinuar.style.display = 'inline-block';
+                btnContinuar.innerText = "Ir para o Álbum";
+            }
+        } else {
+            showToast('❌ ' + (json.msg || 'Erro ao registrar escolha.'));
+            if (json.msg && json.msg.toLowerCase().includes('sessão')) setTimeout(handleSessionExpired, 1500);
+        }
+    } catch(e) {
+        showLoading(false);
+        showToast('❌ Erro de conexão.');
+    }
 }
 
 function showPackAnimation(figurinhas, titulo) {
@@ -6650,6 +6915,7 @@ async function fundirLegado() {
               await loadAlbumData(); 
               showPackAnimation(j.figurinhas, "Forja Concluída!"); 
             }
+            if (typeof loadMissions === 'function') loadMissions();
         } else { showToast('❌ ' + j.msg); }
     } catch(e) { showLoading(false); showToast('❌ Erro na Forja.'); }
 }
@@ -6773,6 +7039,45 @@ function playSom(tipo) {
     }
   } catch(e) {}
 }
+
+// 1. O OLHEIRO ABSOLUTO DAS MISSÕES
+  // Roda silenciosamente 3 vezes por segundo. Se o álbum estiver na tela, as missões aparecem!
+  setInterval(() => {
+      const albumWs = document.getElementById('album-workspace');
+      const missionsSide = document.getElementById('missions-sidebar-container');
+      if (albumWs && missionsSide) {
+          // Verifica se o álbum não está escondido e tem largura na tela
+          const isAlbumVisible = (albumWs.style.display !== 'none' && albumWs.offsetWidth > 0);
+          missionsSide.style.display = isAlbumVisible ? 'block' : 'none';
+      }
+  }, 300);
+
+  // 2. DISPARO DO MODAL DE ASSIDUIDADE
+  function verificarAlertaAssiduidade() {
+      if (!albumData || !albumData.pacotesPremio) return;
+      
+      // 🚀 Busca adaptada para o novo nome de pacote do banco de dados
+      let pacoteEncontrado = albumData.pacotesPremio.find(pid => pid.includes("premio_assid"));
+      
+      if (pacoteEncontrado) {
+          const storageKey = "alerted_" + pacoteEncontrado;
+          if (!localStorage.getItem(storageKey)) {
+              let nomeFase = "Fase de Grupos";
+              if (pacoteEncontrado.includes("16avos")) nomeFase = "16 Avos de Final";
+              if (pacoteEncontrado.includes("oitavas")) nomeFase = "Oitavas de Final";
+              
+              document.getElementById('assiduidade-fase-nome').innerText = nomeFase;
+              
+              // MÁGICA: Força o modal "À Prova de Balas" a aparecer na tela como flexbox
+              document.getElementById('modal-assiduidade').style.display = 'flex';
+              
+              if(typeof playSom === 'function') playSom('pacote');
+              if(typeof confetti !== 'undefined') confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 }, zIndex: 999999, colors: ['#a855f7', '#eab308'] });
+              
+              localStorage.setItem(storageKey, "true");
+          }
+      }
+  }
 </script>
 </body>
 </html>
