@@ -3248,7 +3248,7 @@
 //  CONFIGURAÇÃO
 // ════════════════════════════════════════
 
-const API_URL = "https://script.google.com/macros/s/AKfycbzYW903QzjxZERGBeg_2Q4OuHbuY85vRf-Azq_oSY4zfpVwZ3FKQiDJpjXV7wJGHzXs/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzweVcZUVkU-xguuhcnSZdcbIpoeAK6S-YXySqKOgYD_RkK4PnwBQGboTu_-WX8FK7f/exec";
 
 // ════════════════════════════════════════
 //  SEGURANÇA E AUXILIARES
@@ -3715,6 +3715,7 @@ function checkAuth() {
   
   if (currentUser) {
     document.getElementById('display-logged-user').textContent = currentUser;
+    autoSwitchFase();
     renderMatches(); 
     loadUserPalpites();
     if(typeof loadAlbumData === 'function') loadAlbumData(); // Chama o álbum!
@@ -4664,99 +4665,94 @@ async function init() {
 
 init();
 
-// 🔄 MOTOR DE SALTO AUTOMÁTICO PARA O MATA-MATA
-(function autoSwitchFase() {
-  // Ordem das fases e o valor do select de ranking correspondente
-  const FASES = [
-    { key: 'grupos',  rankVal: 'grupos'  },
-    { key: '16avos',  rankVal: '16avos'  },
-    { key: 'oitavas', rankVal: 'oitavas' },
-    { key: 'quartas', rankVal: 'quartas' },
-    { key: 'semi',    rankVal: 'semi'    },
-    { key: 'final',   rankVal: 'final'   },
-  ];
-
-  // Acha a data/hora do último jogo de uma fase (2h após o kickoff)
-  function ultimaDataFase(faseKey) {
-    let ultima = null;
-
-    if (faseKey === 'grupos') {
-      // Usa GROUP_MATCHES que têm datas fixas
-      GROUP_MATCHES.forEach(m => {
-        if (!m.date || !m.time || m.phase !== 'grupos') return;
-        const p = m.date.split('/');
-        const t = m.time.split(':');
-        const d = new Date(+p[2], +p[1]-1, +p[0], +t[0], +t[1]);
-        if (!ultima || d > ultima) ultima = d;
-      });
-    } else {
-      // Fases KO: usa o koMatches salvo (que tem datas inseridas pelo admin)
-      const ko = getKO();
-      KO_TEMPLATES.forEach(tpl => {
-        if (tpl.phase !== faseKey) return;
-        const saved = ko[tpl.id];
-        if (!saved || !saved.date) return;
-        // date pode vir em vários formatos — tenta DD/MM/YYYY e ISO
-        let d;
-        if (saved.date.includes('/')) {
-          const p = saved.date.split('/');
-          const t = (saved.time || '00:00').split(':');
-          d = new Date(+p[2], +p[1]-1, +p[0], +t[0], +t[1]);
+// 🔄 MOTOR INTELIGENTE DE SALTO AUTOMÁTICO 7.0 (A Batalha Final)
+function autoSwitchFase() {
+    const FASES_ORDER = ['grupos', '16avos', 'oitavas', 'quartas', 'semi', 'final'];
+    
+    // Parser que arranca a Data e a Hora exatas, não importa a bagunça que o Google mande
+    function parseAnyDate(dStr, tStr) {
+        if (!dStr || dStr === 'A definir' || !tStr || tStr === 'A definir') return null;
+        
+        let d = null;
+        let dStrClean = String(dStr).split('T')[0]; // Limpa ruído caso seja ISO
+        
+        // Entende se é DD/MM/YYYY, YYYY-MM-DD, etc.
+        if (dStrClean.includes('/')) {
+            let p = dStrClean.split('/');
+            d = p[2].length === 4 ? new Date(+p[2], +p[1]-1, +p[0]) : new Date(+p[0], +p[1]-1, +p[2]);
+        } else if (dStrClean.includes('-')) {
+            let p = dStrClean.split('-');
+            d = p[0].length === 4 ? new Date(+p[0], +p[1]-1, +p[2]) : new Date(+p[2], +p[1]-1, +p[0]);
         } else {
-          d = new Date(saved.date);
+            d = new Date(dStrClean);
         }
-        if (!isNaN(d) && (!ultima || d > ultima)) ultima = d;
-      });
+
+        if (!d || isNaN(d)) return null;
+
+        // Arranca as horas com precisão cirúrgica
+        let tString = String(tStr);
+        let timePart = tString.includes('T') ? tString.split('T')[1].split('.')[0] : tString;
+        let pt = timePart.split(':');
+        
+        let h = parseInt(pt[0], 10) || 0;
+        let m = parseInt(pt[1], 10) || 0;
+        
+        d.setHours(h, m, 0, 0);
+        return d;
     }
 
-    if (!ultima) return null;
-    // 2 horas após o kickoff do último jogo
-    return new Date(ultima.getTime() + 2 * 60 * 60 * 1000);
-  }
-
-  function aplicarFaseAtual() {
     const now = new Date();
-    let faseAtiva = null; // null = ainda em grupos ou não começou
+    let allMatches = [];
 
-    // Percorre da última fase para a primeira, acha a primeira que já terminou
-    for (let i = FASES.length - 1; i >= 0; i--) {
-      const fim = ultimaDataFase(FASES[i].key);
-      if (fim && now >= fim) {
-        // A fase seguinte é a atual (ou 'final' se for a última)
-        const proxIdx = Math.min(i + 1, FASES.length - 1);
-        faseAtiva = FASES[proxIdx].rankVal;
-        break;
-      }
+    // 1. Puxa os Grupos
+    if (typeof GROUP_MATCHES !== 'undefined') {
+        GROUP_MATCHES.forEach(m => {
+            let kickoff = parseAnyDate(m.date, m.time);
+            if (kickoff) allMatches.push({ phase: m.phase, end: new Date(kickoff.getTime() + 2 * 3600000) });
+        });
+    }
+    
+    // 2. Puxa o Mata-Mata (🚀 AQUI ESTAVA O BUG DO FANTASMA!)
+    // Usamos o getKO() nativo do seu sistema em vez daquela variável que não existia!
+    if (typeof KO_TEMPLATES !== 'undefined' && typeof getKO === 'function') {
+        let koData = getKO();
+        KO_TEMPLATES.forEach(m => {
+            let saved = koData[String(m.id)];
+            if (saved) {
+                let kickoff = parseAnyDate(saved.date, saved.time);
+                if (kickoff) allMatches.push({ phase: m.phase, end: new Date(kickoff.getTime() + 2 * 3600000) });
+            }
+        });
     }
 
-    // Atualiza o select do ranking (só se o usuário não mudou manualmente — verifica se está em 'total')
+    // Ordena do mais velho para o mais novo
+    allMatches.sort((a, b) => a.end - b.end);
+
+    let faseAtiva = 'grupos';
+    let nextMatch = allMatches.find(m => m.end > now);
+
+    if (nextMatch) {
+        faseAtiva = nextMatch.phase; 
+    } else if (allMatches.length > 0) {
+        // Pula para a próxima fase logicamente
+        let lastPhase = allMatches[allMatches.length - 1].phase;
+        let nextIdx = Math.min(FASES_ORDER.indexOf(lastPhase) + 1, FASES_ORDER.length - 1);
+        faseAtiva = FASES_ORDER[nextIdx];
+    }
+
+    // --- 🚀 DISPARA A TROCA NA TELA ---
+    const selEtapa = document.getElementById('sel-etapa');
+    if (selEtapa) selEtapa.value = faseAtiva;
+    
+    const selMeus = document.getElementById('sel-etapa-meus');
+    if (selMeus) selMeus.value = faseAtiva;
+    
     const selRank = document.getElementById('sel-rank-fase');
-    if (selRank && faseAtiva && selRank.value === 'total') {
-      selRank.value = faseAtiva;
-      renderRanking();
+    if (selRank && selRank.value === 'total') {
+        selRank.value = faseAtiva;
+        if (typeof renderRanking === 'function') renderRanking();
     }
-
-    // Atualiza as abas de palpites (comportamento original mantido)
-    const faseAbaGrupos = ultimaDataFase('grupos');
-    if (faseAbaGrupos && now >= faseAbaGrupos) {
-      const selEtapa = document.getElementById('sel-etapa');
-      const selMeus  = document.getElementById('sel-etapa-meus');
-      // Descobre qual fase KO é a mais recente com jogos cadastrados
-      let melhorFaseKO = '16avos';
-      for (let i = FASES.length - 1; i >= 1; i--) {
-        const fim = ultimaDataFase(FASES[i].key);
-        if (fim) { melhorFaseKO = FASES[i].key; break; }
-      }
-      if (selEtapa && selEtapa.value === 'grupos') selEtapa.value = melhorFaseKO;
-      if (selMeus  && selMeus.value  === 'grupos') selMeus.value  = melhorFaseKO;
-    }
-  }
-
-  // Roda imediatamente e re-verifica a cada 5 minutos
-  // (garante que funciona mesmo quando o admin insere jogos KO e o usuário está com a página aberta)
-  aplicarFaseAtual();
-  setInterval(aplicarFaseAtual, 5 * 60 * 1000);
-})();
+}
 
 function toggleDark() {
   const isDark = document.body.classList.toggle('dark');
@@ -7078,6 +7074,8 @@ function playSom(tipo) {
           }
       }
   }
+
+  
 </script>
 </body>
 </html>
