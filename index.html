@@ -4260,8 +4260,13 @@ function updatePtsDisplay(id) {
   if (pts === null) {
       el.innerHTML = `Real:<br><b>${r.h}–${r.a}</b>`;
   } else {
-      let colorCls = pts.base === 10 ? ' pts10' : pts.base === 5 ? ' pts5' : pts.base === 3 ? ' pts3' : '';
-      if (pts.bonus > 0) colorCls = ' pts10'; // Fica verdão se acertou o bônus!
+      let colorCls = '';
+      if (pts.total > 0) {
+          if (pts.base === 10) colorCls = ' pts10'; // Verde
+          else if (pts.base === 5) colorCls = ' pts5'; // Azul
+          else if (pts.base === 3) colorCls = ' pts3'; // Laranja
+          else colorCls = ' pts10'; // Se for acerto puramente de método, usa o verde padrão do css
+      }
       el.className = 'pts-display' + colorCls;
       el.innerHTML = `<b>${pts.total} pts</b><br><small>${r.h}–${r.a}</small>`;
   }
@@ -4397,7 +4402,17 @@ function renderMyPalpites() {
     }
 
     if (hasP || hasR) {
-      const color = ptsObj && ptsObj.total > 0 ? (ptsObj.bonus > 0 ? 'var(--pts10)' : 'var(--green)') : 'var(--muted)';
+      // 🚀 AS CORES ORIGINAIS RESTAURADAS AQUI
+      let txtColor = 'var(--muted)';
+      let bgColor = 'transparent';
+      
+      if (ptsObj !== null && ptsObj.total > 0) {
+          if (ptsObj.base === 10) { txtColor = 'var(--pts10)'; bgColor = 'rgba(22, 163, 74, 0.15)'; } // Verde
+          else if (ptsObj.base === 5) { txtColor = 'var(--pts5)'; bgColor = 'rgba(37, 99, 235, 0.15)'; } // Azul
+          else if (ptsObj.base === 3) { txtColor = 'var(--pts3)'; bgColor = 'rgba(217, 119, 6, 0.15)'; } // Laranja
+          else { txtColor = '#a855f7'; bgColor = 'rgba(168, 85, 247, 0.15)'; } // Roxo (Acertou APENAS o método bônus)
+      }
+
       const metodoHtml = (hasResolutionMethod(m.id, m.phase) && p && p.m) ? `<span style="font-size:0.7rem; background:#3b82f6; color:white; padding:2px 6px; border-radius:4px; margin-left:8px;">${p.m === 'normal' ? '90 Min' : p.m === 'prorrogacao' ? 'Prorrog.' : 'Pênaltis'}</span>` : '';
       
       html += `<div class="my-result">
@@ -4407,7 +4422,7 @@ function renderMyPalpites() {
         </div>
         <div class="my-guess">${hasP ? `${p.h}–${p.a}` : '—'}</div>
         ${hasR ? `<div class="real-score" style="color:var(--muted);font-size:.85rem;">Real: ${r.h}–${r.a}</div>` : ''}
-        ${ptsObj !== null ? `<span class="pts-badge" style="background:${ptsObj.total>0?'rgba(22, 163, 74, 0.15)':''};color:${color}">${ptsObj.total>0?'+'+ptsObj.total+'pts':'0 pts'}</span>` : ''}
+        ${ptsObj !== null ? `<span class="pts-badge" style="background:${bgColor};color:${txtColor}">${ptsObj.total>0?'+'+ptsObj.total+'pts':'0 pts'}</span>` : ''}
       </div>`;
     }
   });
