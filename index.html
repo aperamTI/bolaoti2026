@@ -1716,6 +1716,9 @@
     <span class="badge badge-5">🎯 5 pts — Vencedor/Empate + Saldo</span>
     <span class="badge badge-3">↕️ 3 pts — Apenas Vencedor</span>
   </div>
+<div style="font-size:0.8rem; color:var(--muted); text-align:center; margin-bottom:15px; font-weight:bold;">
+  🏆 Bônus (Quartas em diante): +1 Pt (Tempo Normal) | +4 Pts (Pênaltis) | +7 Pts (Prorrogação)
+</div>
 
   <div id="auth-container" class="card" style="max-width: 420px; margin: 30px auto; display: block;">
     <div class="card-title">🔐 Identifique-se para palpitar</div>
@@ -3248,7 +3251,7 @@
 //  CONFIGURAÇÃO
 // ════════════════════════════════════════
 
-const API_URL = "https://script.google.com/macros/s/AKfycbzJQqRYxui47td4lowOcyjbnpfEt_fw3vaD2bkelq0c3ZsER6Hc_XzlsD_koe1BQxY/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwcz-jbZnHhV86MqfGbvN_O0e-0NV7SFj1BY8iyMaIW7akff11F0MhnliWOA1B0Q6wf/exec";
 
 // ════════════════════════════════════════
 //  SEGURANÇA E AUXILIARES
@@ -3418,7 +3421,40 @@ const KO_TEMPLATES = [
   { id:37, phase:"semi",    slot:1, label:"Semifinal 1" },
   { id:38, phase:"semi",    slot:2, label:"Semifinal 2" },
   { id:39, phase:"final",   slot:1, label:"Grande Final" },
+  { id:40, phase:"final",   slot:2, label:"Disputa do 3º Lugar" },
 ];
+
+function hasResolutionMethod(id, phase) {
+    return phase === 'quartas' || phase === 'semi' || phase === 'final' || String(id) === '31' || String(id) === '32';
+}
+
+function getPontuacao(ph, pa, rh, ra, pm, rm, rWinner, koHome, koAway) {
+    if (rh === null || rh === undefined || ra === null || ra === undefined) return null;
+    if (ph === null || ph === undefined || pa === null || pa === undefined) return { base: 0, bonus: 0, total: 0 };
+    ph = parseInt(ph); pa = parseInt(pa); rh = parseInt(rh); ra = parseInt(ra);
+    if (isNaN(ph)||isNaN(pa)||isNaN(rh)||isNaN(ra)) return { base: 0, bonus: 0, total: 0 };
+
+    let base = 0;
+    if (ph === rh && pa === ra) base = 10;
+    else {
+        let pWin = ph > pa ? 1 : ph < pa ? -1 : 0;
+        let rWin = rh > ra ? 1 : rh < ra ? -1 : 0;
+        if (rh === ra && rWinner) {
+           if (rWinner === koHome) rWin = 1; else if (rWinner === koAway) rWin = -1;
+        }
+        if (pWin === rWin && (ph-pa) === (rh-ra)) base = 5; else if (pWin === rWin) base = 3;
+    }
+
+    // A MÁGICA DOS PONTOS AQUI!
+    let bonus = 0;
+    if (pm && rm && pm === rm) {
+        if (rm === 'normal') bonus = 1;
+        else if (rm === 'penaltis') bonus = 4;
+        else if (rm === 'prorrogacao') bonus = 7;
+    }
+
+    return { base, bonus, total: base + bonus };
+}
 
 let MATCHES = [...GROUP_MATCHES];
 let CACHE_DATA = { users: {}, palpites: {}, results: {}, koMatches: {} };
@@ -3901,18 +3937,26 @@ function calcPts(ph, pa, rh, ra) {
 
 // ✨ ATUALIZADO: Agora aceita filtrar por uma fase específica
 function calcUserTotal(user, excludeMatchId = null, phaseFilter = 'total') {
-  const data = getData(), results = getResults();
-  let total = 0, c10 = 0, c5 = 0, c3 = 0;
-  MATCHES.forEach(m => {
-    if (m.id === excludeMatchId) return; 
-    if (phaseFilter !== 'total' && m.phase !== phaseFilter) return; // Filtra a fase
-    
-    const p = data[`${user}__${m.id}`], r = results[m.id];
-    if (!p || !r) return;
-    const pts = calcPts(p.h, p.a, r.h, r.a);
-    if (pts === 10) { total += 10; c10++; } else if (pts === 5) { total += 5; c5++; } else if (pts === 3) { total += 3; c3++; }
-  });
-  return { total, c10, c5, c3 };
+    const data = getData(), results = getResults(), ko = getKO();
+    let total = 0, c10 = 0, c5 = 0, c3 = 0;
+    MATCHES.forEach(m => {
+        if (m.id === excludeMatchId) return; 
+        if (phaseFilter !== 'total' && m.phase !== phaseFilter) return;
+        
+        const p = data[`${user}__${m.id}`], r = results[m.id];
+        if (!p || !r) return;
+        
+        let koMatch = ko[m.id];
+        let pts = getPontuacao(p.h, p.a, r.h, r.a, p.m, r.m, r.winner, koMatch ? koMatch.home : null, koMatch ? koMatch.away : null);
+        
+        if (pts) {
+            total += pts.total;
+            if (pts.base === 10) c10++;
+            else if (pts.base === 5) c5++;
+            else if (pts.base === 3) c3++;
+        }
+    });
+    return { total, c10, c5, c3 };
 }
 
 // ⏱️ Descobre qual foi o último jogo que teve o placar preenchido pelo Admin
@@ -4092,10 +4136,38 @@ function generateMatchHTML(m, results) {
     }
   }
 
-  let statsHTML = '';
-  if (!isDefinir) {
-    statsHTML = getMatchStatsHTML(m);
+  let methodHTML = '';
+  if (hasResolutionMethod(m.id, m.phase)) {
+      methodHTML = `
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; gap: 8px; border-top: 1px dashed var(--border); flex-wrap: wrap;">
+          
+          <!-- Coluna 1: Espaçamento igual ao time da esquerda -->
+          <div style="flex: 1;"></div>
+          
+          <!-- Coluna 2: Alinhado exatamente com as caixas de gols -->
+          <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <label style="font-size:0.75rem; color:var(--muted); font-weight:bold; margin:0; white-space:nowrap;">⚽ Método de Decisão (+ Pontos):</label>
+              <select id="pm-${m.id}" style="font-size:0.75rem; padding:4px 6px; border-radius:6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); outline:none; cursor:pointer;" ${disabled ? 'disabled' : ''} onchange="updatePtsDisplay('${m.id}')">
+                  <option value="">-- Ignorar --</option>
+                  <option value="normal">Tempo Normal (90m)</option>
+                  <option value="prorrogacao">Prorrogação (120m)</option>
+                  <option value="penaltis">Disputa de Pênaltis</option>
+              </select>
+          </div>
+          
+          <!-- Coluna 3: Espaçamento igual ao time da direita -->
+          <div style="flex: 1;"></div>
+
+          <!-- Coluna 4: Alinhado exatamente embaixo do Display de Pontos/Placar Real -->
+          <div style="min-width: 58px; text-align: center;">
+              ${adminDone && r.m ? `<div style="font-size:0.65rem; color:var(--pts3); font-weight:bold; line-height: 1.2;">Gabarito Oficial:<br>${r.m === 'normal' ? 'Tempo Normal' : r.m === 'prorrogacao' ? 'Prorrogação' : 'Pênaltis'}</div>` : ''}
+          </div>
+          
+      </div>`;
   }
+
+  let statsHTML = '';
+  if (!isDefinir) statsHTML = getMatchStatsHTML(m);
 
   return `
   <div class="match-card ${urgencyClass}" id="mc-${m.id}">
@@ -4103,13 +4175,14 @@ function generateMatchHTML(m, results) {
     <div class="match-body">
       <div class="team-name">${m.home}</div>
       <div class="score-inputs">
-        <input type="number" min="0" max="20" id="ph-${m.id}" placeholder="–" oninput="updatePtsDisplay(${m.id})" ${disabled ? 'disabled' : ''}>
+        <input type="number" min="0" max="20" id="ph-${m.id}" placeholder="–" oninput="updatePtsDisplay('${m.id}')" ${disabled ? 'disabled' : ''}>
         <span class="score-vs">✕</span>
-        <input type="number" min="0" max="20" id="pa-${m.id}" placeholder="–" oninput="updatePtsDisplay(${m.id})" ${disabled ? 'disabled' : ''}>
+        <input type="number" min="0" max="20" id="pa-${m.id}" placeholder="–" oninput="updatePtsDisplay('${m.id}')" ${disabled ? 'disabled' : ''}>
       </div>
       <div class="team-name">${m.away}</div>
       <div class="pts-display" id="pts-${m.id}">${adminDone ? `Real:<br><b>${r.h}–${r.a}</b>` : ''}</div>
     </div>
+    ${methodHTML}
     ${countdownHTML}
     ${statsHTML}
   </div>`;
@@ -4175,46 +4248,48 @@ window.showGroupRound = function(grp, round) {
 
 function updatePtsDisplay(id) {
   const phEl = document.getElementById(`ph-${id}`), paEl = document.getElementById(`pa-${id}`), el = document.getElementById(`pts-${id}`);
+  const pmEl = document.getElementById(`pm-${id}`);
   if (!phEl || !paEl || !el) return;
-  const r = getResults()[id], ph = phEl.value, pa = paEl.value;
+  const r = getResults()[id], ko = getKO()[id];
+  const ph = phEl.value, pa = paEl.value, pm = pmEl ? pmEl.value : "";
   if (!r || r.h === null || r.h === undefined) {
     el.textContent = (ph !== '' && pa !== '') ? `${ph}–${pa}` : ''; el.className = 'pts-display'; return;
   }
-  const pts = calcPts(ph, pa, r.h, r.a);
-  el.className = 'pts-display' + (pts===10?' pts10':pts===5?' pts5':pts===3?' pts3':'');
-  el.innerHTML = pts === null ? `Real:<br><b>${r.h}–${r.a}</b>` : `<b>${pts} pts</b><br><small>${r.h}–${r.a}</small>`;
+  
+  let pts = getPontuacao(ph, pa, r.h, r.a, pm, r.m, r.winner, ko ? ko.home : null, ko ? ko.away : null);
+  if (pts === null) {
+      el.innerHTML = `Real:<br><b>${r.h}–${r.a}</b>`;
+  } else {
+      let colorCls = pts.base === 10 ? ' pts10' : pts.base === 5 ? ' pts5' : pts.base === 3 ? ' pts3' : '';
+      if (pts.bonus > 0) colorCls = ' pts10'; // Fica verdão se acertou o bônus!
+      el.className = 'pts-display' + colorCls;
+      el.innerHTML = `<b>${pts.total} pts</b><br><small>${r.h}–${r.a}</small>`;
+  }
 }
 
 function loadUserPalpites() {
   const user = getLoggedUser(); if(!user) return;
   const data = getData();
   const etapaSelecionada = document.getElementById('sel-etapa') ? document.getElementById('sel-etapa').value : 'grupos';
-  let palpitesFeitos = 0;
-  let totalFase = 0;
+  let palpitesFeitos = 0; let totalFase = 0;
 
   MATCHES.forEach(m => {
-    if (m.phase === etapaSelecionada) totalFase++; // Conta quantos jogos existem nessa fase
-
+    if (m.phase === etapaSelecionada) totalFase++;
     const phEl = document.getElementById(`ph-${m.id}`), paEl = document.getElementById(`pa-${m.id}`);
+    const pmEl = document.getElementById(`pm-${m.id}`);
     if (phEl && paEl) {
       const p = data[`${user}__${m.id}`];
       phEl.value = (p && p.h !== undefined && p.h !== null) ? p.h : '';
       paEl.value = (p && p.a !== undefined && p.a !== null) ? p.a : '';
+      if (pmEl && p && p.m) pmEl.value = p.m;
       
-      // Conta se o cara palpitou no jogo DESTA fase
-      if (m.phase === etapaSelecionada && p && p.h !== undefined && p.h !== null && p.h !== '') {
-          palpitesFeitos++;
-      }
+      if (m.phase === etapaSelecionada && p && p.h !== undefined && p.h !== null && p.h !== '') palpitesFeitos++;
       updatePtsDisplay(m.id);
     }
   });
 
   const trk = document.getElementById('assiduidade-tracker');
-  if (trk) {
-      trk.innerText = `${palpitesFeitos}/${totalFase} Jogos`;
-      // Fica Dourado se bater a meta, e reseta para a cor normal senão
-      trk.style.color = (palpitesFeitos === totalFase && totalFase > 0) ? '#eab308' : 'var(--text)';
-  }
+  if (trk) { trk.innerText = `${palpitesFeitos}/${totalFase} Jogos`; trk.style.color = (palpitesFeitos === totalFase && totalFase > 0) ? '#eab308' : 'var(--text)'; }
 }
 
 async function savePalpites() {
@@ -4227,17 +4302,24 @@ async function savePalpites() {
     if (isMatchLocked(m.date, m.time)) return;
     const phEl = document.getElementById(`ph-${m.id}`);
     const paEl = document.getElementById(`pa-${m.id}`);
+    // 🚀 ADICIONADO: Captura o campo de Método de Decisão
+    const pmEl = document.getElementById(`pm-${m.id}`);
+    
     if (!phEl || !paEl) return;
     
     const valH = phEl.value.trim();
     const valA = paEl.value.trim();
+    const valM = pmEl ? pmEl.value : ""; // 🚀 ADICIONADO: Pega o valor ou deixa em branco
+
     if (valH !== '' && valA !== '') {
-      guessesToSend.push({ id: m.id, h: parseInt(valH, 10), a: parseInt(valA, 10) });
+      // 🚀 ADICIONADO: Envia a variável 'm' para o backend
+      guessesToSend.push({ id: m.id, h: parseInt(valH, 10), a: parseInt(valA, 10), m: valM });
     }
   });
 
   if(guessesToSend.length === 0) { showToast('⚠️ Nenhum palpite preenchido ou alterado.'); return; }
   showLoading(true);
+  
   try {
     let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'savePalpites', token: getToken(), user: user, guesses: guessesToSend }) });
     let json = await res.json();
@@ -4252,7 +4334,8 @@ async function savePalpites() {
       let confirmados = true;
       guessesToSend.forEach(g => {
          const saved = currentData[`${user}__${g.id}`];
-         if (!saved || saved.h !== g.h || saved.a !== g.a) {
+         // 🚀 ADICIONADO: O Double-Check agora também verifica se o Método (g.m) foi salvo certinho!
+         if (!saved || saved.h !== g.h || saved.a !== g.a || (g.m !== undefined && saved.m !== g.m)) {
             confirmados = false;
          }
       });
@@ -4287,63 +4370,52 @@ async function savePalpites() {
 // ════════════════════════════════════════
 
 function renderMyPalpites() {
-  const user = document.getElementById('sel-view-user').value;
-  const loggedUser = getLoggedUser(); 
-  const phase = document.getElementById('sel-etapa-meus').value;
-  const container = document.getElementById('my-palpites-list');
+  const user = document.getElementById('sel-view-user').value; const loggedUser = getLoggedUser(); 
+  const phase = document.getElementById('sel-etapa-meus').value; const container = document.getElementById('my-palpites-list');
   if (!user) { container.innerHTML = ''; return; }
-
   const isOwnProfile = (user === loggedUser);
-
-  const data = getData(), results = getResults();
-  let html = '', total = 0;
-  let hasNew10Points = false;
-  const now = new Date();
+  const data = getData(), results = getResults(), koData = getKO();
+  let html = '', total = 0; let hasNew10Points = false; const now = new Date();
 
   MATCHES.filter(m => m.phase === phase).forEach(m => {
     const p = data[`${user}__${m.id}`], r = results[m.id];
     const hasP = p && p.h !== undefined && p.h !== null, hasR = r && r.h !== null && r.h !== undefined;
-    const pts = hasP && hasR ? calcPts(p.h, p.a, r.h, r.a) : null;
+    const koMatch = koData[m.id];
     
-    if (pts !== null) {
-      total += pts;
-      if (pts === 10 && isOwnProfile) {
+    const ptsObj = (hasP && hasR) ? getPontuacao(p.h, p.a, r.h, r.a, p.m, r.m, r.winner, koMatch ? koMatch.home : null, koMatch ? koMatch.away : null) : null;
+    
+    if (ptsObj !== null) {
+      total += ptsObj.total;
+      if (ptsObj.base === 10 && isOwnProfile) {
         if (m.date !== 'A definir' && m.time !== 'A definir' && !m.date.includes('T')) {
-          const dParts = m.date.split('/');
-          const tParts = m.time.split(':');
+          const dParts = m.date.split('/'); const tParts = m.time.split(':');
           const kickoff = new Date(dParts[2], dParts[1]-1, dParts[0], parseInt(tParts[0]), parseInt(tParts[1]));
           const diffHours = (now - kickoff) / (1000 * 60 * 60);
-          if (diffHours >= 0 && diffHours <= 14) {
-            hasNew10Points = true;
-          }
+          if (diffHours >= 0 && diffHours <= 14) hasNew10Points = true;
         }
       }
     }
 
     if (hasP || hasR) {
-      const ptsColor = pts===10?'var(--pts10)':pts===5?'var(--pts5)':pts===3?'var(--pts3)':'var(--muted)';
+      const color = ptsObj && ptsObj.total > 0 ? (ptsObj.bonus > 0 ? 'var(--pts10)' : 'var(--green)') : 'var(--muted)';
+      const metodoHtml = (hasResolutionMethod(m.id, m.phase) && p && p.m) ? `<span style="font-size:0.7rem; background:#3b82f6; color:white; padding:2px 6px; border-radius:4px; margin-left:8px;">${p.m === 'normal' ? '90 Min' : p.m === 'prorrogacao' ? 'Prorrog.' : 'Pênaltis'}</span>` : '';
+      
       html += `<div class="my-result">
         <div class="match-info">
-          <div style="font-weight:600;font-size:.9rem;">${m.home} × ${m.away}</div>
-          <div style="font-size:.75rem;color:var(--muted);">${m.date} · ${m.group} ${m.round ? '(R'+m.round+')' : ''}</div>
+          <div style="font-weight:600;font-size:.9rem;">${m.home} × ${m.away} ${metodoHtml}</div>
+          <div style="font-size:.75rem;color:var(--muted);">${m.date} · ${m.group}</div>
         </div>
         <div class="my-guess">${hasP ? `${p.h}–${p.a}` : '—'}</div>
         ${hasR ? `<div class="real-score" style="color:var(--muted);font-size:.85rem;">Real: ${r.h}–${r.a}</div>` : ''}
-        ${pts !== null ? `<span class="pts-badge" style="background:${pts>0?ptsColor+'22':''};color:${ptsColor}">${pts>0?'+'+pts+'pts':'0 pts'}</span>` : ''}
+        ${ptsObj !== null ? `<span class="pts-badge" style="background:${ptsObj.total>0?'rgba(22, 163, 74, 0.15)':''};color:${color}">${ptsObj.total>0?'+'+ptsObj.total+'pts':'0 pts'}</span>` : ''}
       </div>`;
     }
   });
 
-  if (html === '') {
-    html = `<p style="text-align:center; color:var(--muted); padding:10px;">Nenhum palpite registrado para esta etapa.</p>`;
-  } else {
-    html = `<div style="background:var(--pitch);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:900;padding:10px 14px;border-radius:8px;margin-bottom:14px;text-align:center;">TOTAL (Nesta Etapa): ${total} pontos</div>` + html;
-  }
+  if (html === '') html = `<p style="text-align:center; color:var(--muted); padding:10px;">Nenhum palpite registrado para esta etapa.</p>`;
+  else html = `<div style="background:var(--pitch);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:900;padding:10px 14px;border-radius:8px;margin-bottom:14px;text-align:center;">TOTAL (Nesta Etapa): ${total} pontos</div>` + html;
   container.innerHTML = html;
-  
-  if (hasNew10Points) {
-    confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, zIndex: 9999 });
-  }
+  if (hasNew10Points) confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, zIndex: 9999 });
 }
 
 function renderRanking() {
@@ -4484,12 +4556,23 @@ function renderAdminMatches() {
          </div>`
       : '';
 
+    let methodAdminHTML = '';
+    if (hasResolutionMethod(m.id, selectedPhase)) {
+        methodAdminHTML = `
+        <select id="adm-m-${m.id}" style="padding:4px; font-size:0.8rem; border-radius:4px; margin-top:4px; border: 1px solid var(--border);">
+            <option value="" ${!r.m ? 'selected':''}>Definir Método Oficial...</option>
+            <option value="normal" ${r.m === 'normal' ? 'selected':''}>Normal (90m)</option>
+            <option value="prorrogacao" ${r.m === 'prorrogacao' ? 'selected':''}>Prorrogação</option>
+            <option value="penaltis" ${r.m === 'penaltis' ? 'selected':''}>Pênaltis</option>
+        </select>`;
+    }
+
     return `<div class="admin-match" style="flex-direction:column; align-items:stretch; gap:6px;">
       <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
         <div class="team-label">${m.date} | ${m.group || ''}${roundLabel}</div>
         <div style="flex:2;font-weight:600;font-size:.9rem;">${m.home} × ${m.away}</div>
         ${isDefinir
-          ? `<span style="font-size:.8rem;color:var(--muted);font-style:italic;">Confronto não definido — use "Editar Confrontos"</span>`
+          ? `<span style="font-size:.8rem;color:var(--muted);font-style:italic;">Confronto não definido</span>`
           : `<input type="number" min="0" max="20" id="adm-h-${m.id}" value="${confirmed?r.h:''}" placeholder="–">
              <span style="font-weight:800;color:var(--muted);">–</span>
              <input type="number" min="0" max="20" id="adm-a-${m.id}" value="${confirmed?r.a:''}" placeholder="–">
@@ -4497,6 +4580,7 @@ function renderAdminMatches() {
              ${confirmed ? `<span class="result-confirmed">✔ ${r.h}–${r.a}</span>` : ''}`
         }
       </div>
+      ${methodAdminHTML}
       ${winnerRow}
     </div>`;
   }).join('') || '<p style="text-align:center; color:var(--muted); padding:10px;">Nenhum jogo nesta etapa.</p>';
@@ -4504,10 +4588,12 @@ function renderAdminMatches() {
 
 async function saveResult(id) {
   const h = document.getElementById(`adm-h-${id}`)?.value, a = document.getElementById(`adm-a-${id}`)?.value;
+  const mEl = document.getElementById(`adm-m-${id}`);
+  const mVal = mEl ? mEl.value : "";
   if (h === '' || h === undefined || a === '' || a === undefined) { showToast('⚠️ Preencha ambos os placares.'); return; }
   showLoading(true);
   try {
-    let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveResult', token: ADMIN_TOKEN, id: String(id), h: parseInt(h), a: parseInt(a) }) });
+    let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveResult', token: ADMIN_TOKEN, id: String(id), h: parseInt(h), a: parseInt(a), m: mVal }) });
     let json = await res.json();
     if(json.status === 'success') {
       await new Promise(r => setTimeout(r, 800));
@@ -4515,14 +4601,8 @@ async function saveResult(id) {
       if(getLoggedUser()) { renderMatches(); loadUserPalpites(); }
       if (document.getElementById('sel-view-user').value) renderMyPalpites();
       showToast(`✅ Resultado salvo!`);
-    } else { 
-      showToast('❌ ' + (json.msg || 'Erro ao salvar.')); 
-      logError('Erro Admin ao salvar placar: ' + json.msg, 'admin', 'error');
-    }
-  } catch(e) { 
-    showToast('❌ Erro de rede.'); 
-    logError('Erro de rede Admin ao salvar placar: ' + e.message, 'admin', 'error');
-  }
+    } else { showToast('❌ Erro.'); }
+  } catch(e) { showToast('❌ Erro de rede.'); }
   showLoading(false);
 }
 
