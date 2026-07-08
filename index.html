@@ -5138,13 +5138,26 @@ function downloadLogs() {
 window.addEventListener('load', () => {
   startLiveUpdates();
   
-  // Radar de Notificações: Checa novas trocas a cada 30 segundos de forma invisível
+  // Radar Inteligente de Notificações: A cada 6 minutos (60000ms), SÓ se a aba estiver ativa
   setInterval(async () => {
+    // 🚀 A TRAVA DE OURO: Se a aba estiver em segundo plano/minimizada, não incomoda o Google!
+    if (document.hidden) return; 
+
     let usr = getLoggedUser();
     if (!usr) return;
     try {
+      // Como não temos uma rota leve separada, usamos a leitura com blindagem extra (texto primeiro)
       let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getAlbumData', token: getToken(), user: usr }) });
-      let json = await res.json();
+      let text = await res.text();
+      let json;
+      
+      try {
+          json = JSON.parse(text);
+      } catch (e) {
+          // Se o Google engasgar e devolver HTML (<!DOCTYPE...), ignoramos silenciosamente
+          return; 
+      }
+
       if (json.status === 'success' && json.pending !== undefined) {
         let badge = document.getElementById('trade-badge');
         if (badge) {
@@ -5156,8 +5169,8 @@ window.addEventListener('load', () => {
            }
         }
       }
-    } catch(e) {}
-  }, 30000);
+    } catch(e) {} // Ignora erros de rede em segundo plano para não poluir o console
+  }, 60000); // 🚀 60000ms = 1 minuto (respiro aliviado para o Google)
 });
 
 // ════════════════════════════════════════
