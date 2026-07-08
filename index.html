@@ -3435,17 +3435,24 @@ function getPontuacao(ph, pa, rh, ra, pm, rm, rWinner, koHome, koAway) {
     if (isNaN(ph)||isNaN(pa)||isNaN(rh)||isNaN(ra)) return { base: 0, bonus: 0, total: 0 };
 
     let base = 0;
-    if (ph === rh && pa === ra) base = 10;
-    else {
+    
+    // 1. Acerto em cheio no placar
+    if (ph === rh && pa === ra) {
+        base = 10;
+    } else {
         let pWin = ph > pa ? 1 : ph < pa ? -1 : 0;
         let rWin = rh > ra ? 1 : rh < ra ? -1 : 0;
-        if (rh === ra && rWinner) {
-           if (rWinner === koHome) rWin = 1; else if (rWinner === koAway) rWin = -1;
-        }
-        if (pWin === rWin && (ph-pa) === (rh-ra)) base = 5; else if (pWin === rWin) base = 3;
+        
+        // 2. Acertou a tendência pura do placar (Vitória, Derrota ou Empate)
+        if (pWin === rWin) {
+            // Se for empate (ex: 1x1 e 0x0), o saldo (0) bate, garantindo os 5 pontos justos!
+            if ((ph - pa) === (rh - ra)) base = 5; 
+            else base = 3;
+        } 
+        // 3. Se errou a tendência (ex: apostou 2x1 e foi 0x0), ganha 0 no placar.
     }
 
-    // A MÁGICA DOS PONTOS AQUI!
+    // A MÁGICA DOS PONTOS BÔNUS (Totalmente independente do placar)
     let bonus = 0;
     if (pm && rm && pm === rm) {
         if (rm === 'normal') bonus = 1;
