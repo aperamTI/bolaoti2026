@@ -5175,7 +5175,7 @@ function toggleChat() {
     widget.classList.add('open');
     fab.style.display = 'none';
     loadChatMessages();
-    chatInterval = setInterval(loadChatMessages, 8000);
+    chatInterval = setInterval(loadChatMessages, 30000);
   } else {
     widget.classList.remove('open');
     setTimeout(() => fab.style.display = 'flex', 300);
