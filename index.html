@@ -1699,10 +1699,10 @@
     <div class="live-update-time" id="live-update-time"></div>
     
     <div id="missions-sidebar-container" style="display: none; margin-top: 20px;">
-        <div class="live-sidebar-title" style="color:var(--gold);">🎯 Missões Semanais</div>
-        <div id="missions-content">
-           <div class="live-empty">Carregando...</div>
-        </div>
+    <div class="live-sidebar-title" style="color:var(--gold);">🎯 Missões Diárias</div>
+    <div id="missions-content">
+       <div class="live-empty">Carregando...</div>
+    </div>
     </div>
   </aside>
 
@@ -3251,7 +3251,7 @@
 //  CONFIGURAÇÃO
 // ════════════════════════════════════════
 
-const API_URL = "https://script.google.com/macros/s/AKfycby-Db4UpDHS_T2fm2tRn0JaCuPaOyUvNXU87xfXZI9Wmc-WKqWQ6QatHp8RYZOR-ALh/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxLb8Q4IECF2XsgvxpcHZ-P_IH3I8E0D7-btC7VNGS4N1wTWFoTGLEIK78JNd-uot0/exec";
 
 // ════════════════════════════════════════
 //  SEGURANÇA E AUXILIARES
@@ -5291,7 +5291,7 @@ async function loadMissions() {
         if (json.status === 'success') {
             const mc = document.getElementById('missions-content');
             if (json.claimed) {
-                mc.innerHTML = `<div style="text-align:center; padding:15px 5px; color:var(--pts10); font-weight:bold; font-size:0.85rem; background:rgba(34, 197, 94, 0.1); border-radius:8px; border:1px solid var(--pts10);">✅ Missões da semana concluídas! Novas tarefas no Domingo.</div>`;
+                mc.innerHTML = `<div style="text-align:center; padding:15px 5px; color:var(--pts10); font-weight:bold; font-size:0.85rem; background:rgba(34, 197, 94, 0.1); border-radius:8px; border:1px solid var(--pts10);">✅ Missões do dia concluídas! Novas tarefas amanhã às 08:00.</div>`;
                 return;
             }
             
@@ -5330,7 +5330,7 @@ async function claimMissions(weekId) {
         let json = await res.json();
         showLoading(false);
         if (json.status === 'success') {
-            showToast("🎁 Pacote Semanal Resgatado! Ele está na aba do Álbum.");
+            showToast("🎁 Pacote Diário Resgatado! Ele está na aba do Álbum.");
             loadMissions();
             loadAlbumData(); // Atualiza os pacotes lá na tela do álbum
             confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 }, zIndex: 9999, colors: ['#4ade80', '#eab308'] });
