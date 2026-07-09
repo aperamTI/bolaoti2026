@@ -1807,13 +1807,12 @@
       <div class="user-select-wrap" style="flex: 1; margin-bottom: 0;">
         <label>📅 Selecione a Etapa da Copa:</label>
         <select id="sel-etapa" onchange="renderMatches(); loadUserPalpites();">
-          <option value="grupos">Fase de Grupos</option>
-          <option value="16avos">16 Avos de Final</option>
-          <option value="oitavas">Oitavas de Final</option>
-          <option value="quartas">Quartas de Final</option>
-          <option value="semi">Semifinais</option>
-          <option value="final">Grande Final</option>
-        </select>
+  	<option value="grupos">Fase de Grupos</option>
+  	<option value="16avos">16 Avos de Final</option>
+  	<option value="oitavas">Oitavas de Final</option>
+  	<option value="quartas">Quartas de Final</option>
+  	<option value="semi_final">Semifinais / Final</option>
+      </select>
       </div>
       <div style="text-align:center; flex: 1;">
           <div style="font-size:0.75rem; font-weight:700; color:var(--muted); text-transform:uppercase;">Assiduidade Perfeita</div>
@@ -1841,13 +1840,12 @@
       <div class="user-select-wrap" style="flex: 1; min-width: 150px;">
         <label>📅 Filtro de Etapa</label>
         <select id="sel-etapa-meus" onchange="renderMyPalpites()">
-          <option value="grupos">Fase de Grupos</option>
-          <option value="16avos">16 Avos de Final</option>
-          <option value="oitavas">Oitavas de Final</option>
-          <option value="quartas">Quartas de Final</option>
-          <option value="semi">Semifinais</option>
-          <option value="final">Grande Final</option>
-        </select>
+  	<option value="grupos">Fase de Grupos</option>
+  	<option value="16avos">16 Avos de Final</option>
+  	<option value="oitavas">Oitavas de Final</option>
+  	<option value="quartas">Quartas de Final</option>
+  	<option value="semi_final">Semifinais / Final</option>
+      </select>
       </div>
     </div>
     <div id="my-palpites-list"></div>
@@ -1864,19 +1862,18 @@
       </div>
       <div class="user-select-wrap" style="flex: 1; min-width: 150px; margin-bottom: 0;">
         <select id="sel-rank-fase" onchange="renderRanking()" style="padding: 9px 12px; height: 100%;">
-          <option value="total">Geral (Todas as Fases)</option>
-          <option value="grupos">Fase de Grupos</option>
-          <option value="16avos">16 Avos de Final</option>
-          <option value="oitavas">Oitavas de Final</option>
-          <option value="quartas">Quartas de Final</option>
-          <option value="semi">Semifinais</option>
-          <option value="final">Grande Final</option>
-        </select>
+  	<option value="total">Geral (Todas as Fases)</option>
+  	<option value="grupos">Fase de Grupos</option>
+  	<option value="16avos">16 Avos de Final</option>
+  	<option value="oitavas">Oitavas de Final</option>
+  	<option value="quartas">Quartas de Final</option>
+  	<option value="semi_final">Semifinais / Final</option>
+      </select>
       </div>
     </div>
     
     <div style="font-size: 0.75rem; color: var(--muted); margin-bottom: 12px; text-align: center;">
-      <b>Prêmios de Fase (Top 3):</b> 📦 Grupos | 🎟️ 16-Avos | 🥉 Oitavas | 🥈 Quartas | 🥇 Semi
+        <b>Prêmios de Fase (Top 3):</b> 📦 Grupos | 🎟️ 16-Avos | 🥉 Oitavas | 🥈 Quartas | 🥇 Semi / Final
     </div>
 
     <div class="ranking-wrap">
@@ -2790,13 +2787,12 @@
           <div class="user-select-wrap" style="flex: 1; min-width: 150px; margin-bottom: 0;">
             <label>📅 Etapa:</label>
             <select id="sel-etapa-admin" onchange="toggleAdminRound(); renderAdminMatches()">
-              <option value="grupos">Fase de Grupos</option>
-              <option value="16avos">16 Avos de Final</option>
-              <option value="oitavas">Oitavas de Final</option>
-              <option value="quartas">Quartas de Final</option>
-              <option value="semi">Semifinais</option>
-              <option value="final">Grande Final</option>
-            </select>
+  	      <option value="grupos">Fase de Grupos</option>
+  	      <option value="16avos">16 Avos de Final</option>
+  	      <option value="oitavas">Oitavas de Final</option>
+  	      <option value="quartas">Quartas de Final</option>
+  	      <option value="semi_final">Semifinais / Final</option>
+	    </select>
           </div>
           <div class="user-select-wrap" id="wrap-rodada-admin" style="flex: 1; min-width: 120px; margin-bottom: 0;">
             <label>Rodada:</label>
@@ -2825,12 +2821,11 @@
           <div class="user-select-wrap" style="min-width:150px; flex:1; margin-bottom:0;">
             <label>📅 Fase:</label>
             <select id="sel-fase-ko" onchange="renderKOEditor()">
-              <option value="16avos">16 Avos de Final</option>
-              <option value="oitavas">Oitavas de Final</option>
-              <option value="quartas">Quartas de Final</option>
-              <option value="semi">Semifinais</option>
-              <option value="final">Grande Final</option>
-            </select>
+  	       <option value="16avos">16 Avos de Final</option>
+  	       <option value="oitavas">Oitavas de Final</option>
+  	       <option value="quartas">Quartas de Final</option>
+  	       <option value="semi_final">Semifinais / Final</option>
+	    </select>
           </div>
         </div>
 
@@ -3251,7 +3246,7 @@
 //  CONFIGURAÇÃO
 // ════════════════════════════════════════
 
-const API_URL = "https://script.google.com/macros/s/AKfycbxLb8Q4IECF2XsgvxpcHZ-P_IH3I8E0D7-btC7VNGS4N1wTWFoTGLEIK78JNd-uot0/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzCMSGM_tzYp9DU2AxFY7AZTYEAUO9GKNk47lwCQbagcQXnP-mnrDUPzUJWdHAFH3Ok/exec";
 
 // ════════════════════════════════════════
 //  SEGURANÇA E AUXILIARES
@@ -3418,14 +3413,14 @@ const KO_TEMPLATES = [
   { id:34, phase:"quartas", slot:2, label:"Jogo 2" },
   { id:35, phase:"quartas", slot:3, label:"Jogo 3" },
   { id:36, phase:"quartas", slot:4, label:"Jogo 4" },
-  { id:37, phase:"semi",    slot:1, label:"Semifinal 1" },
-  { id:38, phase:"semi",    slot:2, label:"Semifinal 2" },
-  { id:39, phase:"final",   slot:1, label:"Grande Final" },
-  { id:88, phase:"final",   slot:2, label:"Disputa do 3º Lugar" },
+  { id:37, phase:"semi_final",   slot:1, label:"Semifinal 1" },
+  { id:38, phase:"semi_final",   slot:2, label:"Semifinal 2" },
+  { id:39, phase:"semi_final",   slot:3, label:"Grande Final" },
+  { id:88, phase:"semi_final",   slot:4, label:"Disputa do 3º Lugar" },
 ];
 
 function hasResolutionMethod(id, phase) {
-    return phase === 'quartas' || phase === 'semi' || phase === 'final' || String(id) === '31' || String(id) === '32';
+    return phase === 'quartas' || phase === 'semi_final' || String(id) === '31' || String(id) === '32';
 }
 
 function getPontuacao(ph, pa, rh, ra, pm, rm, rWinner, koHome, koAway) {
@@ -4010,9 +4005,9 @@ function getWinnersMap() {
     let winners = {}; 
 
     // Ordem oficial da Copa e seus prêmios
-    const PHASE_ORDER = ['grupos', '16avos', 'oitavas', 'quartas', 'semi', 'final'];
-    const MEDALS = { 'grupos': '📦', '16avos': '🎟️', 'oitavas': '🥉', 'quartas': '🥈', 'semi': '🥇', 'final': '🏆' };
-    const NAMES = { 'grupos': 'Grupos', '16avos': '16 Avos', 'oitavas': 'Oitavas', 'quartas': 'Quartas', 'semi': 'Semifinal', 'final': 'Final' };
+    const PHASE_ORDER = ['grupos', '16avos', 'oitavas', 'quartas', 'semi_final'];
+    const MEDALS = { 'grupos': '📦', '16avos': '🎟️', 'oitavas': '🥉', 'quartas': '🥈', 'semi_final': '🥇' };
+    const NAMES = { 'grupos': 'Grupos', '16avos': '16 Avos', 'oitavas': 'Oitavas', 'quartas': 'Quartas', 'semi_final': 'Semi / Final' };
 
     PHASE_ORDER.forEach(phase => {
         // Pega todos os jogos dessa fase que já têm times definidos
@@ -4655,7 +4650,7 @@ function renderKOEditor() {
   const container = document.getElementById('ko-editor-container');
 
   // ✨ NOVO: Adicionado os "16 Avos de Final" no dicionário de títulos
-  const phaseNames = { '16avos':'16 Avos de Final', oitavas:'Oitavas de Final', quartas:'Quartas de Final', semi:'Semifinais', final:'Grande Final' };
+  const phaseNames = { '16avos':'16 Avos de Final', oitavas:'Oitavas de Final', quartas:'Quartas de Final', semi_final:'Semifinais / Final' };
 
   let html = '';
   templates.forEach(tpl => {
@@ -4769,7 +4764,7 @@ init();
 
 // 🔄 MOTOR INTELIGENTE DE SALTO AUTOMÁTICO 7.0 (A Batalha Final)
 function autoSwitchFase() {
-    const FASES_ORDER = ['grupos', '16avos', 'oitavas', 'quartas', 'semi', 'final'];
+    const FASES_ORDER = ['grupos', '16avos', 'oitavas', 'quartas', 'semi_final'];
     
     // Parser que arranca a Data e a Hora exatas, não importa a bagunça que o Google mande
     function parseAnyDate(dStr, tStr) {
