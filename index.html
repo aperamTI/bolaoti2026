@@ -4197,7 +4197,13 @@ function renderMatches() {
   const filteredMatches = MATCHES.filter(m => m.phase === selectedPhase);
   
   // 🚀 CORREÇÃO AQUI: Adicionado o { numeric: true } para ordenar os números corretamente!
-  const uniqueGroups = [...new Set(filteredMatches.map(m => m.group))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  const uniqueGroups = [...new Set(filteredMatches.map(m => m.group))].sort((a, b) => {
+      if (selectedPhase === 'grupos') return a.localeCompare(b, undefined, { numeric: true });
+      // Para o Mata-Mata, ordena pelo ID do primeiro jogo que aparecer naquele grupo
+      const idA = filteredMatches.find(m => m.group === a).id;
+      const idB = filteredMatches.find(m => m.group === b).id;
+      return idA - idB;
+  });
 
   let html = '';
   uniqueGroups.forEach(grp => {
@@ -4234,7 +4240,11 @@ function renderMatches() {
       });
     } else {
       html += `<div class="group-title-banner" style="margin-bottom:14px;">${bannerText}</div>`;
-      filteredMatches.filter(m => m.group === grp).forEach(m => html += generateMatchHTML(m, results));
+      // 🚀 A MÁGICA DA ORDENAÇÃO CRONOLÓGICA ENTRA AQUI:
+      filteredMatches
+          .filter(m => m.group === grp)
+          .sort((a, b) => a.id - b.id)
+          .forEach(m => html += generateMatchHTML(m, results));
     }
     html += `</div>`;
   });
@@ -4384,7 +4394,7 @@ function renderMyPalpites() {
   const data = getData(), results = getResults(), koData = getKO();
   let html = '', total = 0; let hasNew10Points = false; const now = new Date();
 
-  MATCHES.filter(m => m.phase === phase).forEach(m => {
+  MATCHES.filter(m => m.phase === phase).sort((a, b) => a.id - b.id).forEach(m => {
     const p = data[`${user}__${m.id}`], r = results[m.id];
     const hasP = p && p.h !== undefined && p.h !== null, hasR = r && r.h !== null && r.h !== undefined;
     const koMatch = koData[m.id];
