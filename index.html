@@ -3246,7 +3246,7 @@
 //  CONFIGURAÇÃO
 // ════════════════════════════════════════
 
-const API_URL = "https://script.google.com/macros/s/AKfycbzCMSGM_tzYp9DU2AxFY7AZTYEAUO9GKNk47lwCQbagcQXnP-mnrDUPzUJWdHAFH3Ok/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbweNT04F9LX3A0ftso7BtFfQJtMqbYKD0qXsqEtU3b3894O1f0t3_oDD76JIigiQNSN/exec";
 
 // ════════════════════════════════════════
 //  SEGURANÇA E AUXILIARES
@@ -6547,31 +6547,42 @@ async function abrirPacote(packId, packType) {
   } catch(e) { showLoading(false); showToast('❌ Erro de conexão.'); logError('Erro de rede ao abrir pacote: ' + e.message, user, 'error');}
 }
 
-// NO FRONTEND (Substitua a abrirTodosOsPacotes)
 async function abrirTodosOsPacotes() {
   const user = getLoggedUser();
-  const pacotesDOM = document.querySelectorAll('.pack-item');
+  
+  // 🚀 CORREÇÃO 1: Procura APENAS dentro do painel do álbum, ignorando os decorativos
+  const pacotesDOM = document.querySelectorAll('#packs-container .pack-item');
   
   if (pacotesDOM.length === 0) return;
-  if (!confirm(`Abrir todos os ${pacotesDOM.length} pacotes de uma vez?`)) return;
+  if (!confirm(`Abrir os pacotes acumulados de uma vez?`)) return;
 
   showLoading(true);
 
-  // 1. Cria uma lista limpa com os pacotes a serem abertos
   let pacotesParaEnviar = [];
   pacotesDOM.forEach(p => {
-     pacotesParaEnviar.push({
-         id: p.getAttribute('data-id'),
-         type: p.getAttribute('data-type')
-     });
+     let type = p.getAttribute('data-type');
+     let id = p.getAttribute('data-id');
+     
+     // 🚀 CORREÇÃO 2: Pula imediatamente se o pacote não tiver ID ou Tipo
+     if (!type || !id) return; 
+
+     // Ignora os pacotes de escolha (Pseudo) pois eles exigem clique manual
+     if (!type.includes('pseudo')) {
+         pacotesParaEnviar.push({ id: id, type: type });
+     }
   });
 
+  if (pacotesParaEnviar.length === 0) {
+      showLoading(false); // 🚀 CORREÇÃO 3: Desliga o carregamento antes de interromper
+      showToast('⚠️ Os pacotes Místicos/Pseudos exigem decisão e devem ser abertos clicando neles!');
+      return;
+  }
+
   try {
-     // 2. Dispara UMA única requisição pesada para o backend
      let res = await fetch(API_URL, {
          method: 'POST',
          body: JSON.stringify({
-             action: 'abrirPacotesEmLote', // <-- NOME DA NOVA ROTA
+             action: 'abrirPacotesEmLote',
              token: getToken(),
              user: user,
              listaPacotes: pacotesParaEnviar
@@ -7195,7 +7206,105 @@ function playSom(tipo) {
       }
   }
 
-  
+  function showGrandFinalModal() {
+    let usr = getLoggedUser();
+    // Trava para mostrar apenas UMA vez na vida do jogador
+    if (!usr || localStorage.getItem('gf_reward_seen_' + usr)) return;
+    localStorage.setItem('gf_reward_seen_' + usr, '1');
+
+    const overlay = document.createElement('div');
+    overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(5px);";
+    
+    const box = document.createElement('div');
+    box.style.cssText = "background:var(--surface); border: 2px solid var(--gold); border-radius:16px; padding:30px 20px; text-align:center; max-width:550px; width:100%; box-shadow: 0 10px 30px rgba(234, 179, 8, 0.3); animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);";
+    
+    box.innerHTML = `
+        <h2 style="color:var(--gold); font-family:'Barlow Condensed', sans-serif; font-size:2.4rem; margin-top:0; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; line-height: 1.1;">🏆 A Grande Final 🏆</h2>
+        <p style="color:var(--text); font-size:1rem; line-height:1.5; margin-bottom:25px;">
+            Chegamos ao momento mais aguardado! Muito obrigado a todos que acompanharam, palpitaram e engajaram no Bolão até o apito final. Como recompensa, preparamos este kit épico para você:
+        </p>
+        
+        <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:15px; margin-bottom:30px;">
+            
+            <!-- PACOTE DOURADO (3x) -->
+            <div style="transform: scale(0.85); margin: -15px -5px;">
+                <div class="pack-item pack-5pts" style="pointer-events:none; margin:0;">
+                    <div class="pack-shine"></div>
+                    <div class="pack-content">
+                        <div class="pack-title">Dourado</div>
+                        <div class="pack-badge" style="background:#ca8a04; color:white; border-color:#fde047;">3 UNIDADES</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PACOTE BRILHANTE (2x) -->
+            <div style="transform: scale(0.85); margin: -15px -5px;">
+                <div class="pack-item pack-10pts" style="pointer-events:none; margin:0;">
+                    <div class="pack-shine"></div>
+                    <div class="pack-content">
+                        <div class="pack-title" style="font-size:1.3rem;">Brilhante</div>
+                        <div class="pack-badge" style="background:#2563eb; color:white; border-color:#60a5fa;">2 UNIDADES</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PACOTE MÍTICO (1x) -->
+            <div style="transform: scale(0.85); margin: -15px -5px;">
+                <div class="pack-item pack-mitico" style="pointer-events:none; margin:0;">
+                    <div class="pack-shine"></div>
+                    <div class="pack-content">
+                        <div class="pack-title" style="font-size:1.5rem;">Mítico</div>
+                        <div class="pack-badge" style="background:#7c3aed; color:white; border-color:#a78bfa;">1 UNIDADE</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PACOTE PSEUDO-RARO (1x) -->
+            <div style="transform: scale(0.85); margin: -15px -5px;">
+                <div class="pack-item pack-pseudo-rara" style="pointer-events:none; margin:0;">
+                    <div class="pack-shine"></div>
+                    <div class="pack-pseudo-q">? ? ?</div>
+                    <div class="pack-content">
+                        <div class="pack-title" style="font-size:1.2rem;">Pseudo-Raro</div>
+                        <div class="pack-badge" style="background:#be185d; color:white; border-color:#f9a8d4;">1 UNIDADE</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+        <button onclick="this.parentElement.parentElement.remove(); if(typeof loadAlbumData === 'function') loadAlbumData();" style="background:var(--gold); color:#000; border:none; padding:12px 24px; font-weight:900; font-size:1.2rem; border-radius:8px; cursor:pointer; width:100%; box-shadow:0 4px 15px rgba(234, 179, 8, 0.4); text-transform:uppercase; font-family:'Barlow Condensed', sans-serif; letter-spacing:1px; transition: transform 0.1s;">
+            RESGATAR RECOMPENSAS NO INVENTÁRIO
+        </button>
+    `;
+    
+    if (!document.getElementById('keyframes-popin')) {
+        const style = document.createElement('style');
+        style.id = 'keyframes-popin';
+        style.innerHTML = `@keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }`;
+        document.head.appendChild(style);
+    }
+    
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    
+    if (typeof confetti === 'function') {
+        confetti({ particleCount: 250, spread: 120, origin: { y: 0.6 }, zIndex: 100000, colors: ['#FFD700', '#2563eb', '#a855f7', '#16a34a'] });
+    }
+}
+
+// Dispara a verificação 2 segundinhos após o site terminar de carregar!
+window.addEventListener('load', () => {
+    setTimeout(async () => {
+        let usr = getLoggedUser();
+        if (!usr || localStorage.getItem('gf_reward_seen_' + usr)) return;
+        try {
+            let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getAlbumData', token: getToken(), user: usr }) });
+            let json = await res.json();
+            if (json.grandFinal) showGrandFinalModal();
+        } catch(e) {}
+    }, 2000);
+});
 </script>
 </body>
 </html>
